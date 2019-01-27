@@ -1,0 +1,43 @@
+{
+    "classes": {
+        "echo": "EchoCommand",
+        "alias": "AliasCommand",
+        "sequence": "SequenceCommand",
+        "option": "OptionCommand",
+        "state": "StateCommand"
+    },
+
+    "approved_users": [
+        "pikashy",
+        "newton_the_third"
+    ],
+
+    "restricted": [
+        ["echo", "st", "title"],
+        ["echo", "sg", "game"],
+        ["alias", "pkmn", "sg", "Pokémon Ruby/Sapphire"],
+        ["alias", "ssb", "sg", "Super Smash Bros."],
+        ["alias", "lttp", "sg", "The Legend of Zelda: A Link to the Past"],
+        ["sequence", "ssb_speedrun",
+            ["alias", "st", "Super Smash Bros Speedruns"],
+            "ssb"
+        ],
+        ["sequence", "lttp_ms",
+            ["alias", "st", "LTTP Master Sword Speedruns"],
+            "lttp"
+        ],
+        ["sequence", "lttp_rando",
+            ["alias", "st", "LTTP Randomizer"],
+            "lttp"
+        ],
+        ["option", "speedrun",
+            ["ssb", "ssb_speedrun"],
+            ["ms", "lttp_ms"],
+            ["lttpr", "lttp_rando"]
+        ]
+    ],
+
+    "public": [
+
+    ]
+}
