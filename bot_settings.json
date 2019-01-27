@@ -4,7 +4,9 @@
         "alias": "AliasCommand",
         "sequence": "SequenceCommand",
         "option": "OptionCommand",
-        "state": "StateCommand"
+        "state": "StateCommand",
+        "listener": "ListenerCommand",
+        "file": "FileCommand"
     },
 
     "approved_users": [
@@ -34,7 +36,10 @@
             ["ssb", "ssb_speedrun"],
             ["ms", "lttp_ms"],
             ["lttpr", "lttp_rando"]
-        ]
+        ],
+        ["state", "tag1", "title_tag"],
+        ["listener", "tag2", ["TitleTagListener"]],
+        ["sequence", "set_tag", "tag1", "tag2"]
     ],
 
     "public": [

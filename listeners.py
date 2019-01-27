@@ -24,12 +24,17 @@ class ChatListener:
 
 
 class TitleTagListener(ChatListener):
+    def __init__(self, bot):
+        trigger = "The stream title has been updated to: "
+        user = "nightbot"
+        super(TitleTagListener, self).__init__(bot, trigger, user)
+
     def do(self, user, msg):
         super(TitleTagListener, self).do(user, msg)
 
-        tag = self.bot.state.get("title_tag")
+        tag = self.bot.get_state_variable("title_tag")
         if tag and (tag not in msg):
-            title = msg.split("The stream title has been updated to: ")[-1]
+            title = msg.split(self.trigger)[-1]
             title += " {}".format(tag)
             sleep(5)
             self.bot.send_chat("!title {}".format(title))

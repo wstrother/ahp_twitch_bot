@@ -120,3 +120,18 @@ class ListenerCommand(Command):
     def do(self, *args):
         if super(ListenerCommand, self).do(*args):
             self.bot.add_listener(self.listener)
+
+
+class FileCommand(Command):
+    def __init__(self, bot, name, approved, file_name):
+        super(FileCommand, self).__init__(bot, name, approved)
+        self.file_name = file_name
+
+    def do(self, *args):
+        if super(FileCommand, self).do(*args):
+            user, *msg = args
+            msg = " ".join(msg)
+
+            file = open(self.file_name, "w")
+            file.write(msg)
+            file.close()

@@ -1,4 +1,4 @@
-from commands import EchoCommand, AliasCommand, SequenceCommand, OptionCommand, StateCommand, ListenerCommand
+from commands import EchoCommand, AliasCommand, SequenceCommand, OptionCommand, StateCommand, ListenerCommand, FileCommand
 from listeners import TitleTagListener
 from twitch_chat import TwitchChat
 
@@ -102,14 +102,13 @@ if __name__ == "__main__":
             ("ms", "lttp_ms"),
             ("joke", "st", "It's a joke title...")
          ),
-        (StateCommand, "tag", True, "title_tag"),
-        (ListenerCommand, "set_tag", True, (
-            TitleTagListener, "The stream title has been updated to:", "nightbot"
-        )),
-        (SequenceCommand, "tag_seq", True,
-            "tag",
-            "set_tag"
-         )
+        (StateCommand, "tag1", True, "title_tag"),
+        (ListenerCommand, "tag2", True, [TitleTagListener]),
+        (SequenceCommand, "set_tag", True,
+            "tag1",
+            "tag2"
+         ),
+        (FileCommand, "header", True, "stream_header.txt")
     )
 
     ahp_bot.run("#athenshorseparty420", "Hello there")
