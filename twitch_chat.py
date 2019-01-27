@@ -55,6 +55,7 @@ class TwitchChat:
         self.send("PRIVMSG {} :{}".format(
             self.channel, msg
         ))
+        self.print_chat_message(self.user_name, msg)
 
     def join_chat(self, join_msg=None):
         self.send("PASS " + self.get_password())
@@ -69,14 +70,15 @@ class TwitchChat:
 
         if join_msg:
             self.send_chat(join_msg)
-            self.print_chat_message(self.user_name, join_msg)
+
+        return self
 
     def update_chat(self):
         lines = self.chat_buffer
 
         chat_text = self.socket.recv(
             self.RECV_BUFFER_SIZE
-        ).decode(self.ENC).split("\n")
+        ).decode(self.ENC).split("\n")[:-1]
 
         for line in chat_text:
             if not self.check_for_ping(line):
@@ -90,10 +92,14 @@ class TwitchChat:
         ping = line == "PING :tmi.twitch.tv"
         if ping:
             self.send(line.replace("PING", "PONG"))
+            print("\t PING'd by the server!")
+
+        return ping
 
     def print_line(self, line):
         if "PRIVMSG" not in line:
             print(line)
+
         else:
             user = line.split("!")[0][1:]
             delimiter = "PRIVMSG {} :".format(self.channel)
@@ -103,19 +109,21 @@ class TwitchChat:
 
     @staticmethod
     def print_chat_message(user, msg):
-        print("{}: {}".format(user, msg))
+        msg = msg.replace("\r", "")
+        print("{:>25}: {}".format(user, msg))
 
     def handle_message(self, user, msg):
         self.print_chat_message(user, msg)
+
         if self.bot:
             self.bot.handle_message(user, msg)
 
 
 if __name__ == "__main__":
     chat = TwitchChat(
-        "ahp_helper_bot",
+        "your_bot_name",
         "oauth.token",
-        "#athenshorseparty420"
+        "#your_twitch_name"
     )
 
     chat.join_chat()
