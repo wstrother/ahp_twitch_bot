@@ -31,17 +31,20 @@
         ["sequence", "ssb_speedrun",
             ["alias", "st", "Super Smash Bros Speedruns"],
             "ssb",
-            ["alias", "header", "Super Smash Bros Speedruns"]
+            ["alias", "header", "Super Smash Bros Speedruns"],
+            "sr_category"
         ],
         ["sequence", "lttp_ms",
             ["alias", "st", "LTTP Master Sword Speedruns"],
             "lttp",
-            ["alias", "header", "LTTP Master Sword Speedruns"]
+            ["alias", "header", "LTTP Master Sword Speedruns"],
+            ["sr_category", "Get Master Sword"]
         ],
         ["sequence", "lttp_rando",
             ["alias", "st", "LTTP Randomizer"],
             "lttp",
-            ["alias", "header", "LTTP Randomizer"]
+            ["alias", "header", "LTTP Randomizer"],
+            ["alias", "sr_category", "OW Glitched"]
         ],
 
         ["option", "speedrun",

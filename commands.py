@@ -1,14 +1,47 @@
+#   The commands.py module defines a Command class and collection of
+# subclasses that provide various functions for the TwitchBot class
+# that can be invoked through the Twitch chat. Commands are invoked
+# through chat messages that have the form:
+#       "![command_name] arg1 arg2 arg3..."
+#   Any number of arguments can be passed (including none) and should
+# be separated by spaces. Various commands can invoke other commands
+# directly, passing the arguments passed to them or predefined arguments
+# set by the Command object at initialization, either in sequence or
+# based on conditional values.
+
+
 class Command:
     def __init__(self, bot, name, restricted):
-        self.name = name
+        """
+        Creates a Command object which the bot object will call based
+        on input from Twitch chat messages
+
+        :param bot: TwitchBot object
+        :param name: str, name for command
+        :param restricted: bool, determines whether the command is
+            invokable by all users in chat or only users in the bot's
+            'approved_users' list
+        """
         self.bot = bot
-        self.approved_only = restricted
-        self.steps = []
+        self.name = name
+        self.restricted = restricted
 
     def do(self, user, *args):
+        """
+        This method simply checks whether the user invoking the command
+        has sufficient privileges. Command subclasses should make a
+        super() call to this method to determine whether or not to
+        execute their associated functionality.
+
+        :param user: str, name of user invoking the command
+        :param args: (str, str...), arbitrary arguments passed after
+            invocation of the command
+        :return: bool, represents whether the appropriate conditions
+            have been met for the command to be invoked
+        """
         ok = True
 
-        if self.approved_only:
+        if self.restricted:
             ok = False
 
             if user in self.bot.approved_users:
@@ -17,15 +50,97 @@ class Command:
         return ok
 
     def do_other(self, command, *args):
+        """
+        This method allows one command to invoke another
+
+        :param command: str, name of other command to invoke
+        :param args: (str, str...), arbitrary arguments to be
+            passed to other commmand
+        """
         self.bot.do_command(command, *args)
+
+    def get_other(self, name, *args):
+        """
+        This method returns an anonymous function that invokes a separate
+        command with certain specified arguments passed to it, before
+        any of the arguments passed to the initial SequenceCommand
+
+        :param name: str, name of other command to be invoked
+        :param args: arguments for other command
+        :return: anonymous function, invoking other command with
+            specified args passed to it
+        """
+        return lambda user, *rgs: self.do_other(name, user, *list(args) + list(rgs))
+
+    def get_step_function(self, entry):
+        """
+        This method generates a method from an 'entry' that can
+        have various forms in order to generate anonymous functions
+        that give commands more flexibility in what effects they
+        can cause
+
+        :param entry:
+                str, the name of another command to be invoked,
+                    with the SequenceCommands additional arguments
+                    passed
+
+                list [Command class, *args], An anonymous Command
+                    (i.e. a command that cannot be invoked separately)
+                    object whose 'do' method will be invoked as a
+                    step of the sequence command. The args will be
+                    passed to the Command class's '__init__' method
+                    along with the Sequence command's 'bot' and
+                    'restricted' values. (It's name will be an empty
+                    string and it will not be stored in the bot
+                    object's 'commands' dict attribute)
+
+                list [str, *args], the name of another command to be
+                    invoked, along with additional specified arguments
+                    that are passed to it's 'do' method. (Any arguments
+                    passed to the SequenceCommand's 'do' method are
+                    appended after these arguments)
+
+        :return: method, a 'step' function to be used as part of a
+            sequence or option branch
+        """
+        if type(entry) is str:
+            return self.get_other(entry)
+
+        else:
+            if type(entry[0]) is type(Command):
+                cls, entry = entry[0], entry[1:]
+                command = cls(self.bot, "", self.restricted, *entry)
+
+                return command.do
+
+            else:
+                name, args = entry[0], entry[1:]
+
+                return self.get_other(name, *args)
+
+
+#   The following Command subclasses represent common functions
+# for the Twitch bot. Usage is documented in the 'do(*args)'
+# method for each subclass.
 
 
 class EchoCommand(Command):
     def __init__(self, bot, name, restricted, alias):
+        """
+        :param alias: str, name of other command for bot to invoke
+        """
         super(EchoCommand, self).__init__(bot, name, restricted)
         self.alias = alias
 
     def do(self, *args):
+        """
+        The EchoCommand takes any arguments passed to it and makes the
+        bot send an additional message to the chat invoking another
+        command with the same arguments
+
+        It is used to 'alias' commands for other bots, which should then
+        be invoked as part of other commands used by the bot
+        """
         if super(EchoCommand, self).do(*args):
             user, msg = args[0], " ".join(args[1:])
             self.bot.send_chat("!{} {}".format(self.alias, msg))
@@ -33,49 +148,62 @@ class EchoCommand(Command):
 
 class InfoCommand(Command):
     def __init__(self, bot, name, restricted, info):
+        """
+        :param info: str, message for bot to send to the chat
+        """
         super(InfoCommand, self).__init__(bot, name, restricted)
         self.info = info
 
     def do(self, *args):
+        """
+        The InfoCommand causes the bot to send a message to the
+        chat, as defined by its 'info' parameter.
+        """
         if super(InfoCommand, self).do(*args):
             self.bot.send_chat(self.info)
 
 
 class AliasCommand(Command):
     def __init__(self, bot, name, restricted, other, msg):
+        """
+        :param other: str, name of other command to be invoked
+        :param msg: str, message string to be used as 'arguments'
+            for the other command
+        """
         super(AliasCommand, self).__init__(bot, name, restricted)
         self.other = other
         self.msg = msg.split(" ")
 
-    def do(self, *args):
-        if super(AliasCommand, self).do(*args):
-            args = list(args) + self.msg
-            self.do_other(self.other, *args)
+    def do(self, user, *args):
+        """
+        The AliasCommand is used to invoke another command with a
+        specific set of arguments defined by the 'other' and 'msg'
+        attributes.
+        """
+        if super(AliasCommand, self).do(user, *args):
+            self.do_other(self.other, user, *self.msg)
 
 
 class SequenceCommand(Command):
     def __init__(self, bot, name, restricted, *sequence):
+        """
+        :param sequence: list, a list of 'entries' that define
+            steps to be executed when the command is invoked.
+        """
         super(SequenceCommand, self).__init__(bot, name, restricted)
         self.steps = []
 
         for entry in sequence:
-            if type(entry) is str:
-                self.steps.append(self.get_other(entry))
-
-            else:
-                if type(entry[0]) is type(Command):
-                    cls, entry = entry[0], entry[1:]
-                    command = cls(bot, "", self.approved_only, *entry)
-                    self.steps.append(command.do)
-
-                else:
-                    name, args = entry[0], entry[1:]
-                    self.steps.append(self.get_other(name, *args))
-
-    def get_other(self, name, *args):
-        return lambda *rgs: self.do_other(name, *list(rgs) + list(args))
+            self.steps.append(self.get_step_function(entry))
 
     def do(self, *args):
+        """
+        The SequenceCommand is used to link a number of different commands
+        together. The initialization arguments passed to this class can take
+        a number of different forms allowing various ways to invoke other
+        commands, or create an anonymous command step from a given Command
+        subclass
+        """
         if super(SequenceCommand, self).do(*args):
             for step in self.steps:
                 step(*args)
@@ -83,32 +211,41 @@ class SequenceCommand(Command):
 
 class OptionCommand(Command):
     def __init__(self, bot, name, restricted, *options):
+        """
+        :param options: list, [str (option name), 'entry']
+            the 'entry' value can have a variety of forms,
+            see the Command.get_step_function() method for
+            full documentation
+        """
         super(OptionCommand, self).__init__(bot, name, restricted)
         self.options = {}
 
         for option in options:
             key = option[0]
-            value = option[1:]
-            self.options[key] = value
+            self.options[key] = self.get_step_function(option[1:])
 
     def do(self, *args):
+        """
+        The OptionCommand creates a command that uses the first argument
+        passed to it as a key for it's 'options' dict, invoking the command
+        stored in that dict[key]
+        """
         if super(OptionCommand, self).do(*args):
             args = list(args)
             user = args.pop(0)
             option = args.pop(0)
 
-            if option in self.options:
-                args = self.options[option] + args
-                if len(args) > 1:
-                    command, args = args[0], args[1:]
-                else:
-                    command, args = args[0], []
-
-                self.bot.do_command(command, user, *args)
+            self.options[option](user, *args)
 
 
 class StateCommand(Command):
     def __init__(self, bot, name, restricted, key=None):
+        """
+        :param key: str, optional the name of the key in
+            bot.state dict where variable is stored. If
+            key is None then the command name will be used
+            for state variable key
+        """
         super(StateCommand, self).__init__(bot, name, restricted)
         if key is None:
             key = name
@@ -116,6 +253,14 @@ class StateCommand(Command):
         self.state_key = key
 
     def do(self, *args):
+        """
+        The StateCommand allows the bot to set so called
+        'state variables' that are stored in a 'state' dict
+        attribute of the bot object. By default, all the args
+        passed to this command are concatenated into a string
+        (i.e. the string of the chat message after the command
+        is invoked)
+        """
         if super(StateCommand, self).do(*args):
             user, value = args[0], " ".join(args[1:])
             self.bot.set_state(self.state_key, value)
@@ -123,21 +268,38 @@ class StateCommand(Command):
 
 class ListenerCommand(Command):
     def __init__(self, bot, name, restricted, listener):
+        """
+        :param listener: (ChatListener class or subclass, *args)
+            an iterable used to specify the listener class and
+            initialization arguments used to instantiate the
+            listener
+        """
         super(ListenerCommand, self).__init__(bot, name, restricted)
         cls, *args = listener
         self.listener = cls(bot, *args)
 
     def do(self, *args):
+        """
+        The ListenerCommand is used to set chat listeners for the
+        bot
+        """
         if super(ListenerCommand, self).do(*args):
             self.bot.add_listener(self.listener)
 
 
 class FileCommand(Command):
     def __init__(self, bot, name, restricted, file_name):
+        """
+        :param file_name: str, name of file to be modified
+        """
         super(FileCommand, self).__init__(bot, name, restricted)
         self.file_name = file_name
 
     def do(self, *args):
+        """
+        The FileCommand is used to set the contents of some file
+        that is used as a source for the stream layout
+        """
         if super(FileCommand, self).do(*args):
             user, *msg = args
             msg = " ".join(msg)
