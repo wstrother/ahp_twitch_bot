@@ -1,6 +1,9 @@
-from commands import EchoCommand, AliasCommand, SequenceCommand, OptionCommand, StateCommand, ListenerCommand, FileCommand
-from listeners import TitleTagListener
 from twitch_chat import TwitchChat
+import listeners
+import commands
+
+import json
+import inspect
 
 
 class TwitchBot:
@@ -53,8 +56,8 @@ class TwitchBot:
         command = cls(self, *args)
         self.commands[command.name] = command
 
-    def set_commands(self, *commands):
-        for c in commands:
+    def set_commands(self, *coms):
+        for c in coms:
             self.add_command(*c)
 
     def set_state(self, key, value):
@@ -81,34 +84,93 @@ class TwitchBot:
             )
 
 
+class BotLoader:
+    def __init__(self, file_name, bot_class, user_name, token_file, *args):
+        self.bot = self.make_bot(bot_class, user_name, token_file, *args)
+
+        file = open(file_name, "r")
+        self.json = json.load(file)
+        file.close()
+
+        self.class_dict = {
+            c[0]: c[1] for c in inspect.getmembers(commands) if inspect.isclass(c[1])
+        }
+        self.class_dict.update({
+            c[0]: c[1] for c in inspect.getmembers(listeners) if inspect.isclass(c[1])
+        })
+
+    @staticmethod
+    def load_bot(json_file, bot_class, user_name, token_file, *args):
+        loader = BotLoader(
+            json_file, bot_class, user_name, token_file, *args
+        )
+        loader.add_approved_users()
+        loader.set_commands()
+
+        return loader.bot
+
+    @staticmethod
+    def make_bot(bot_class, user_name, token_file, *args):
+        return bot_class(user_name, token_file, *args)
+
+    def add_approved_users(self):
+        self.bot.approved_users += self.json["approved_users"]
+
+    def get_class(self, key):
+        if type(key) in (tuple, list):
+            return [self.get_class(i) for i in key]
+
+        else:
+            cd = self.class_dict
+            if key in cd:
+                return cd[key]
+
+            else:
+                aliases = self.json["classes"]
+                if key in aliases:
+                    return cd[aliases[key]]
+
+                else:
+                    return key
+
+    def get_command(self, restricted, entry):
+        cls, *args = entry
+        cls = self.get_class(cls)
+
+        if type(cls) is str:
+            raise ValueError("Key or Class name '{}' not found".format(cls))
+
+        new = []
+        for arg in args:
+            arg = self.get_class(arg)
+
+            new.append(arg)
+
+        name, *args = new
+
+        return tuple([cls, name, restricted] + args)
+
+    def set_commands(self):
+        entries = []
+
+        for entry in self.json["restricted"]:
+            entries.append(
+                self.get_command(True, entry)
+            )
+
+        for entry in self.json["public"]:
+            entries.append(
+                self.get_command(False, entry)
+            )
+
+        self.bot.set_commands(*entries)
+
+
 if __name__ == "__main__":
-    ahp_bot = TwitchBot("ahp_helper_bot", "oauth.token")
+    USER_NAME = "ahp_helper_bot"
+    CHANNEL = "#athenshorseparty420"
+    TOKEN = "oauth.token"
 
-    ahp_bot.set_commands(
-        (EchoCommand, "st", True, "title"),
-        (EchoCommand, "sg", True, "game"),
-        (AliasCommand, "pkmn", True, "sg", "Pokémon Ruby/Sapphire"),
-        (AliasCommand, "ssb", True, "sg", "Super Smash Bros."),
-        (SequenceCommand, "ssb_speedrun", True,
-            (AliasCommand, "st", "Super Smash Bros Speedruns"),
-            "ssb"
-         ),
-        (SequenceCommand, "lttp_ms", True,
-            ("st", "LTTP Master Sword Speedruns"),
-            "pkmn"
-         ),
-        (OptionCommand, "speedrun", True,
-            ("ssb", "ssb_speedrun"),
-            ("ms", "lttp_ms"),
-            ("joke", "st", "It's a joke title...")
-         ),
-        (StateCommand, "tag1", True, "title_tag"),
-        (ListenerCommand, "tag2", True, [TitleTagListener]),
-        (SequenceCommand, "set_tag", True,
-            "tag1",
-            "tag2"
-         ),
-        (FileCommand, "header", True, "stream_header.txt")
-    )
-
-    ahp_bot.run("#athenshorseparty420", "Hello there")
+    BotLoader.load_bot(
+        "bot_settings.json", TwitchBot, USER_NAME, TOKEN
+    ).run(CHANNEL, "Logging on...")

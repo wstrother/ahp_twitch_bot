@@ -1,8 +1,8 @@
 class Command:
-    def __init__(self, bot, name, approved):
+    def __init__(self, bot, name, restricted):
         self.name = name
         self.bot = bot
-        self.approved_only = approved
+        self.approved_only = restricted
         self.steps = []
 
     def do(self, user, *args):
@@ -21,8 +21,8 @@ class Command:
 
 
 class EchoCommand(Command):
-    def __init__(self, bot, name, approved, alias):
-        super(EchoCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, alias):
+        super(EchoCommand, self).__init__(bot, name, restricted)
         self.alias = alias
 
     def do(self, *args):
@@ -31,9 +31,19 @@ class EchoCommand(Command):
             self.bot.send_chat("!{} {}".format(self.alias, msg))
 
 
+class InfoCommand(Command):
+    def __init__(self, bot, name, restricted, info):
+        super(InfoCommand, self).__init__(bot, name, restricted)
+        self.info = info
+
+    def do(self, *args):
+        if super(InfoCommand, self).do(*args):
+            self.bot.send_chat(self.info)
+
+
 class AliasCommand(Command):
-    def __init__(self, bot, name, approved, other, msg):
-        super(AliasCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, other, msg):
+        super(AliasCommand, self).__init__(bot, name, restricted)
         self.other = other
         self.msg = msg.split(" ")
 
@@ -44,8 +54,8 @@ class AliasCommand(Command):
 
 
 class SequenceCommand(Command):
-    def __init__(self, bot, name, approved, *sequence):
-        super(SequenceCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, *sequence):
+        super(SequenceCommand, self).__init__(bot, name, restricted)
         self.steps = []
 
         for entry in sequence:
@@ -72,8 +82,8 @@ class SequenceCommand(Command):
 
 
 class OptionCommand(Command):
-    def __init__(self, bot, name, approved, *options):
-        super(OptionCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, *options):
+        super(OptionCommand, self).__init__(bot, name, restricted)
         self.options = {}
 
         for option in options:
@@ -88,7 +98,7 @@ class OptionCommand(Command):
             option = args.pop(0)
 
             if option in self.options:
-                args = self.options[option]
+                args = self.options[option] + args
                 if len(args) > 1:
                     command, args = args[0], args[1:]
                 else:
@@ -98,8 +108,8 @@ class OptionCommand(Command):
 
 
 class StateCommand(Command):
-    def __init__(self, bot, name, approved, key=None):
-        super(StateCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, key=None):
+        super(StateCommand, self).__init__(bot, name, restricted)
         if key is None:
             key = name
 
@@ -112,8 +122,8 @@ class StateCommand(Command):
 
 
 class ListenerCommand(Command):
-    def __init__(self, bot, name, approved, listener):
-        super(ListenerCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, listener):
+        super(ListenerCommand, self).__init__(bot, name, restricted)
         cls, *args = listener
         self.listener = cls(bot, *args)
 
@@ -123,8 +133,8 @@ class ListenerCommand(Command):
 
 
 class FileCommand(Command):
-    def __init__(self, bot, name, approved, file_name):
-        super(FileCommand, self).__init__(bot, name, approved)
+    def __init__(self, bot, name, restricted, file_name):
+        super(FileCommand, self).__init__(bot, name, restricted)
         self.file_name = file_name
 
     def do(self, *args):

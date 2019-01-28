@@ -6,7 +6,6 @@ class TwitchChat:
     PORT = 6667
     CHAT_BUFFER_SIZE = 1000
     RECV_BUFFER_SIZE = 1024
-    ENC = "utf-8"
 
     def __init__(self, user_name, token_file, channel, bot=None):
         self.user_name = user_name
@@ -48,7 +47,7 @@ class TwitchChat:
     def send(self, msg):
         msg += "\r\n"
         self.socket.send(
-            msg.encode(self.ENC)
+            msg.encode("utf-8")
         )
 
     def send_chat(self, msg):
@@ -78,7 +77,7 @@ class TwitchChat:
 
         chat_text = self.socket.recv(
             self.RECV_BUFFER_SIZE
-        ).decode(self.ENC).split("\n")[:-1]
+        ).decode("utf-8").split("\r\n")[:-1]
 
         for line in chat_text:
             if not self.check_for_ping(line):

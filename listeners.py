@@ -36,5 +36,5 @@ class TitleTagListener(ChatListener):
         if tag and (tag not in msg):
             title = msg.split(self.trigger)[-1]
             title += " {}".format(tag)
-            sleep(5)
+            sleep(2)
             self.bot.send_chat("!title {}".format(title))
