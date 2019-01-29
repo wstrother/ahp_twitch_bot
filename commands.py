@@ -63,7 +63,7 @@ class Command:
         """
         This method returns an anonymous function that invokes a separate
         command with certain specified arguments passed to it, before
-        any of the arguments passed to the initial SequenceCommand
+        any of the arguments passed to the initial invoking command
 
         :param name: str, name of other command to be invoked
         :param args: arguments for other command
