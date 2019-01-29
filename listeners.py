@@ -1,5 +1,3 @@
-from time import sleep
-
 # the listeners.py module defines a ChatListener class that
 # executes some code whenever a 'trigger' string is detected
 # in the chat. Individual listener objects can also have a
@@ -58,27 +56,3 @@ class ChatListener:
         if self.temp:
             self.bot.remove_listener(self)
 
-
-# An example ChatListener subclass that activates whenever the user
-# 'nightbot' sends a message to the chat that it has changed the
-# stream's title. If the bot's 'title_tag' state variable is set,
-# and the title of the stream does not contain the 'title_tag' string,
-# the bot changes the title of the stream to append the 'title_tag'
-# string.
-
-
-class TitleTagListener(ChatListener):
-    def __init__(self, bot):
-        trigger = "The stream title has been updated to: "
-        user = "nightbot"
-        super(TitleTagListener, self).__init__(bot, trigger, user)
-
-    def do(self, user, msg):
-        super(TitleTagListener, self).do(user, msg)
-
-        tag = self.bot.get_state_variable("title_tag")
-        if tag and (tag not in msg):
-            title = msg.split(self.trigger)[-1]
-            title += " {}".format(tag)
-            sleep(2)
-            self.bot.send_chat("!title {}".format(title))
