@@ -11,10 +11,12 @@ is the ability to modify/store variables and change
 files on your system that can be used to alter your
 stream layout directly from your own Twitch chat.
 
-## Requirements
+### Requirements
 
 * Python 3
 * A Twitch account for your bot (and oauth token)
+
+---
 
 ## Usage
 
@@ -240,6 +242,8 @@ The *:listener_entry* expression should have the form:
 ```python
 ["ChatListenerClass", "init_arg1", "init_arg2"...]
 ```
+
+---
 
 ## Documentation
 
