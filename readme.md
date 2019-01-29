@@ -28,7 +28,7 @@ Here's a typical example:
 
 ### **stream.py**
 
-'''python
+```python
 from ahp_twitch_bot.twitch_bot import TwitchBot, BotLoader
 
 if __name__ == "__main__":
@@ -41,7 +41,7 @@ if __name__ == "__main__":
   BotLoader.load_bot(
       SETTINGS, TwitchBot, (USER_NAME, TOKEN)
   ).run(CHANNEL, JOIN_MESSAGE)
-'''
+```
 
 Be sure to create a file for your oauth token (obtainable
 [here](https://twitchapps.com/tmi/)).
@@ -53,7 +53,7 @@ create a JSON data file and provide some instuctions. The following
 keys should always be present in your bot data file to ensure that
 **BotLoader.load_bot()** doesn't raise an error:
 
-'''python
+```python
 {
   "classes": {
       "alias": "ClassName"
@@ -71,7 +71,7 @@ keys should always be present in your bot data file to ensure that
       :command4
     ]  
 }
-'''
+```
 
 * **"classes":** defines alias keys for different classes that can be
 used elsewhere in your JSON data
@@ -104,9 +104,9 @@ subclasses) sepcified in **commands.py** include:
 
 #### EchoCommand
 
-'''python
+```python
 ["EchoCommand", "name", "other_command"]
-'''
+```
 
 These commands will take some argument and cause your bot to echo
 that input in the chat as arguments of some other command name.
@@ -117,9 +117,9 @@ useful ways to leverage the functionality of other common bots.
 
 #### AliasCommand
 
-'''python
+```python
 ["AliasCommand", "name", "other_command", "arg1", "arg2"...]
-'''
+```
 
 These commands do not take any arguments, instead they invoke some other
 command with a specified set of arguments passed to it. They are useful
@@ -128,12 +128,12 @@ typing *"!ssb"* to invoke *"!game Super Smash Bros."*.
 
 #### SequenceCommand
 
-'''python
+```python
 ["SequenceCommand", "name",
   :command_entry1,
   :command_entry2...
 ]
-'''
+```
 
 These commands will invoke a series of other commands, passing any arguments
 they receive to each command in the series they invoke. Each ':command_entry'
@@ -166,12 +166,12 @@ same as typing *'!other_command arg1 arg2 arg3 arg4'*.
 
 #### OptionCommand
 
-'''python
+```python
 ["OptionCommand", "name"
   :command_entry1,
   :command_entry2...
 ]
-'''
+```
 
 These commands take some argument and use it to determine which from a
 series of other commands to invoke, passing all arguments after the first
@@ -187,9 +187,9 @@ choice.
 
 #### StateCommand
 
-'''python
+```python
 ["StateCommand", "name", (optional)"key"]
-'''
+```
 
 These commands set some 'state variable' of the bot, stored in the
 **TwitchBot.state** dict attribute. The name of the command is used
@@ -204,9 +204,9 @@ variable to the string *'some value here'*.
 
 #### FileCommand
 
-'''python
+```python
 ["FileCommand", "name", "file_name"]
-'''
+```
 
 These commands specify some file in the current directory to be written
 to with the arguments passed to this command. Like the **StateCommand**,
@@ -216,18 +216,18 @@ file to be *'some text here'*.
 
 #### InfoCommand
 
-'''python
+```python
 ["InfoCommand", "name", "info"]
-'''
+```
 
 These commands will simply send any information specified by the "info"
 value to the chat anytime the command is invoked.
 
 #### ListenerCommand
 
-'''python
+```python
 ["ListenerCommand", "name", :listener_entry]
-'''
+```
 
 These commands set some **ChatListener** object for the bot. As of the
 current version, subclasses for default functionalities haven't been
@@ -237,9 +237,9 @@ will have to implement your own **ChatListener** subclass to use a
 
 The *:listener_entry* expression should have the form:
 
-'''python
+```python
 ["ChatListenerClass", "init_arg1", "init_arg2"...]
-'''
+```
 
 ## Documentation
 
