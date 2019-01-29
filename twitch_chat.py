@@ -242,16 +242,3 @@ class TwitchChat:
         msg = msg.replace("\r", "")
         print("{:>25}: {}".format(user, msg))
 
-
-if __name__ == "__main__":
-    chat = TwitchChat(
-        "ahp_helper_bot",
-        "oauth.token",
-        "#athenshorseparty420"
-    )
-
-    chat.join_chat("I have joined the chat!")
-
-    while True:
-        chat.update_chat()
-

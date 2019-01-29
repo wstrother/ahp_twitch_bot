@@ -1,6 +1,6 @@
-from twitch_chat import TwitchChat
-import listeners
-import commands
+from ahp_twitch_bot.twitch_chat import TwitchChat
+import ahp_twitch_bot.listeners as listeners
+import ahp_twitch_bot.commands as commands
 
 import json
 import inspect
@@ -353,14 +353,3 @@ class BotLoader:
             )
 
         bot.set_commands(*entries)
-
-
-if __name__ == "__main__":
-    USER_NAME = "ahp_helper_bot"
-    CHANNEL = "#athenshorseparty420"
-    TOKEN = "oauth.token"
-    SETTINGS = "bot_settings.json"
-
-    BotLoader.load_bot(
-        SETTINGS, TwitchBot, (USER_NAME, TOKEN)
-    ).run(CHANNEL, "Logging on...")
