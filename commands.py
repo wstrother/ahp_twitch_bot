@@ -235,7 +235,8 @@ class OptionCommand(Command):
             user = args.pop(0)
             option = args.pop(0)
 
-            self.options[option](user, *args)
+            if option in self.options:
+                self.options[option](user, *args)
 
 
 class StateCommand(Command):
