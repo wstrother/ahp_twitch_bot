@@ -199,13 +199,13 @@ class BotLoader:
     RESTRICTED = "restricted"           # restricted commands
     PUBLIC = "public"                   # unrestricted commands
 
-    def __init__(self, json_file, cd=None):
+    def __init__(self, json_file, classes=None):
         """
         Creates a loader class the provides an interface to set a Twitch bot's
         attributes, commands, and listeners based on JSON data
 
         :param json_file: str, file_name for JSON data
-        :param cd: dict, optional dict to provide additional classes
+        :param classes: list, any additional subclasses needed
         """
         file = open(json_file, "r")
         self.json = json.load(file)
@@ -218,11 +218,13 @@ class BotLoader:
             c[0]: c[1] for c in inspect.getmembers(listeners) if inspect.isclass(c[1])
         })
 
-        if cd:
-            self.class_dict.update(cd)
+        if classes:
+            self.class_dict.update({
+                c.__name__: c for c in classes
+            })
 
     @classmethod
-    def load_bot(cls, json_file, bot_class, bot_args, cd=None):
+    def load_bot(cls, json_file, bot_class, bot_args, classes=None):
         """
         Method that creates a BotLoader object and instantiates
         a bot object from the 'bot_class' passed.
@@ -232,13 +234,13 @@ class BotLoader:
         :param json_file: str, file_name passed to __init__
         :param bot_class: TwitchBot or subclass used to instantiate bot
         :param bot_args: iterable of args passed to bot_class.__init__
-        :param cd: dict, optional class dict passed to __init__
+        :param classes: list, additional classes passed to __init__
 
         :return: bot object with attributes, commands, listeners set
             according to JSON data
         """
         loader = cls(
-            json_file, cd=cd
+            json_file, classes=classes
         )
 
         bot = bot_class(*bot_args)
@@ -353,3 +355,14 @@ class BotLoader:
             )
 
         bot.set_commands(*entries)
+
+
+if __name__ == "__main__":
+    USER_NAME = "ahp_helper_bot"
+    CHANNEL = "#athenshorseparty420"
+    TOKEN = "oauth.token"
+    SETTINGS = "bot_settings.json"
+
+    BotLoader.load_bot(
+        SETTINGS, TwitchBot, (USER_NAME, TOKEN)
+    ).run(CHANNEL, "Logging on...")
