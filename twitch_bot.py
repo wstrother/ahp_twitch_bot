@@ -68,7 +68,15 @@ class TwitchBot:
         ).join_chat(join_msg)
 
         while True:
-            self.chat.update_chat()
+            try:
+                self.chat.update_chat()
+
+            except BaseException as e:
+                msg = "Runtime error occurred '{}: {}'".format(
+                    e.__class__.__name__, e)
+                self.send_chat(msg)
+
+                raise e
 
     def send_chat(self, message):
         """
