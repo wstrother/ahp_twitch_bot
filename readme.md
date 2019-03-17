@@ -284,7 +284,9 @@ that trigger the listener.
 Can be subclassed for custom functionality, but future versions will
 incorporate a standard subclass set like the **commands.py** module.
 
-## TODO:
+---
+
+## FUTURE:
 
 The following are features that I plan on implementing at some point, listed
 in their approximate order of likeliness for me to get them done.
@@ -336,6 +338,6 @@ application that could run bot instances and handle system changes directly
 through the OBS web socket, so that the end user can run an AHP_Twitch_Bot
 instance without installing it on their system
 
-* **Node.js / AJAX layout application** - A simple AJAX frontend that will
+* **Node.js / AJAX layout application** - A simple AJAX front end application that will
 work as an OBS Browser Source and provide custom formatting/styling for 
 stream layouts by interfacing directly with the TwitchBot instance's state data.
