@@ -11,6 +11,10 @@ is the ability to modify/store variables and change
 files on your system that can be used to alter your
 stream layout directly from your own Twitch chat.
 
+### Tutorial Video
+
+[![AHP_Twitch_Bot tutorial](http://img.youtube.com/vi/OROFW0dyH90/0.jpg)](http://www.youtube.com/watch?v=OROFW0dyH90)
+
 ### Requirements
 
 * Python 3
@@ -279,3 +283,59 @@ that trigger the listener.
 
 Can be subclassed for custom functionality, but future versions will
 incorporate a standard subclass set like the **commands.py** module.
+
+## TODO:
+
+The following are features that I plan on implementing at some point, listed
+in their approximate order of likeliness for me to get them done.
+
+* **Save State** - The TwitchBot class should extend methods for loading /
+saving its state in a JSON file so that certain changes can persist after
+closing execution of the program. An API will also need to be developed
+for marking certain state variables as having an initial state in case
+persistent changes are not desired for that particular variable.
+
+* **Modular Bot Data** - The BotLoader class should be refactored to provide
+a more flexible data loading routine. The goal should be that any number of
+JSON files in a specified directory can be combined in a logical way. The
+JSON data that specifies bot settings should also be able to specify URI's
+for potential API end-points that would also provide bot data (see *GET
+Requests*).
+
+* **New Standard Command Classes** - The *commands.py* module should provide
+superclasses for standard commands that can -- 
+    - Create additional commands from standard classes,
+    - Fetch data from a URL (See *'GET Requests'*)
+    - Re-initialize the bot commands set after manual or automatic changes
+    are made to the command set data.
+
+* **GET Requests** - The TwitchBot class should implement methods for making
+GET requests to the URI of an API endpoint that will provide access to a
+potential web application for easier bot customization. They should interface
+with potential bot commands as well as the BotLoader class's initialization
+routine.
+
+* **OBS Websocket API integration** - Support for integration with the OBS
+websocket API should eventually be able to extend functionality for bot
+commands that can automatically control OBS features such as scene transitions
+and more.
+
+## Related Projects
+
+Some plans for possible related projects to be developed in the future.
+
+* **Static HTML Form Components** - A set of HTML web components with JS functionality
+to create a simple web front end for generating bot commands as JSON data.
+
+* **Web App with API Endpoints** - A simple web application to be set up with
+end points for generating bot command data which can then integrate with the
+bot program as it's running.
+
+* **Web App with live bot instances (VERY FUTURE)** - A potential web 
+application that could run bot instances and handle system changes directly
+through the OBS web socket, so that the end user can run an AHP_Twitch_Bot
+instance without installing it on their system
+
+* **Node.js / AJAX layout application** - A simple AJAX frontend that will
+work as an OBS Browser Source and provide custom formatting/styling for 
+stream layouts by interfacing directly with the TwitchBot instance's state data.
