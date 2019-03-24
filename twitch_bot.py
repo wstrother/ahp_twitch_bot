@@ -365,12 +365,12 @@ class BotLoader:
         bot.set_commands(*entries)
 
 
-if __name__ == "__main__":
-    USER_NAME = "ahp_helper_bot"
-    CHANNEL = "#athenshorseparty420"
-    TOKEN = "oauth.token"
-    SETTINGS = "bot_settings.json"
-
-    BotLoader.load_bot(
-        SETTINGS, TwitchBot, (USER_NAME, TOKEN)
-    ).run(CHANNEL, "Logging on...")
+# if __name__ == "__main__":
+#     USER_NAME = "bot_user_name"
+#     CHANNEL = "#your_channel_name"
+#     TOKEN = "oauth.token"
+#     SETTINGS = "bot_settings.json"
+#
+#     BotLoader.load_bot(
+#         SETTINGS, TwitchBot, (USER_NAME, TOKEN)
+#     ).run(CHANNEL, "Logging on...")
