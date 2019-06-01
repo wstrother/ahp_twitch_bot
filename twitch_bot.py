@@ -59,6 +59,7 @@ class TwitchBot:
         """
         host_name = channel[1:]
         self.approved_users.append(host_name)
+        self.approved_users.append(self.user_name)
 
         self.chat = TwitchChat(
             self.user_name,
@@ -147,7 +148,13 @@ class TwitchBot:
         for c in coms:
             self.add_command(*c)
 
-    def set_state(self, key, value, log=True):
+    def get_state(self, key):
+        if key not in self.state:
+            self.state[key] = ""
+
+        return self.state[key]
+
+    def set_state(self, key, value, log=False):
         """
         Alters the 'state' dict to store a variable
 
@@ -290,6 +297,9 @@ class BotLoader:
         if type(key) in (tuple, list):
             return [self.get_class(i) for i in key]
 
+        elif type(key) is dict:
+            return {k: self.get_class(key[k]) for k in key}
+
         else:
             cd = self.class_dict
             if key in cd:
@@ -363,14 +373,3 @@ class BotLoader:
             )
 
         bot.set_commands(*entries)
-
-
-if __name__ == "__main__":
-    USER_NAME = "ahp_helper_bot"
-    CHANNEL = "#athenshorseparty420"
-    TOKEN = "oauth.token"
-    SETTINGS = "bot_settings.json"
-
-    BotLoader.load_bot(
-        SETTINGS, TwitchBot, (USER_NAME, TOKEN)
-    ).run(CHANNEL, "Logging on...")

@@ -1,13 +1,6 @@
 {
-    "classes": {
-    },
-
-    "approved_users": [
-    ],
-
-    "restricted": [
-    ],
-
-    "public": [
-    ]
+  "restricted": [],
+  "approved_users": [],
+  "classes": {},
+  "public": []
 }
