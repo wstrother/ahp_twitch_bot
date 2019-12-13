@@ -4,6 +4,7 @@ import ahp_twitch_bot.commands as commands
 
 import json
 import inspect
+import requests
 
 #   The twitch_bot.py module defines a TwitchBot class that manages a set of
 # commands, listeners, and approved users that can use certain restricted
@@ -205,6 +206,30 @@ class TwitchBot:
             self.listeners.pop(
                 self.listeners.index(listener)
             )
+
+    @staticmethod
+    def post_to_api(command_name, url, msg):
+        try:
+            data = json.loads(msg)
+        except ValueError:
+            print("bad data passed to {}: \n{}".format(
+                command_name, msg
+            ))
+            return False
+
+        p = None
+        response = "\nRESPONSE FROM SERVER:\n {}"
+
+        try:
+            p = requests.post(
+                url, data=data, headers={'Content-type': 'application/json'}
+            )
+        except requests.ConnectionError:
+            error = "API POST request to {} failed to connect to server".format(url)
+            print(response.format(error))
+
+        if p:
+            print(response.format(p.text))
 
 
 class BotLoader:

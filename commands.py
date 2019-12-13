@@ -358,24 +358,4 @@ class PostCommand(Command):
         if super(PostCommand, self).do(*args):
             user, *msg = args
             msg = " ".join(msg)
-            try:
-                data = json.loads(msg)
-            except ValueError:
-                print("bad data passed to {}: \n{}".format(
-                    self.name, msg
-                ))
-                return False
-
-            p = None
-            response = "\nRESPONSE FROM SERVER:\n {}"
-
-            try:
-                p = requests.post(
-                    self.url, data=data, headers={'Content-type': 'application/json'}
-                )
-            except requests.ConnectionError:
-                error = "API POST request to {} failed to connect to server".format(self.url)
-                print(response.format(error))
-
-            if p:
-                print(response.format(p.text))
+            self.bot.post_to_api(self.name, self.url, msg)

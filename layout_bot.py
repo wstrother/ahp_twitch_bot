@@ -11,18 +11,30 @@ TITLE_COMMAND = "st"
 GAME_KEY = "game"
 GAME_COMMAND = "sg"
 
+DEFAULT_URL = "http://127.0.0.1:4000/api/"
 
-class StateBot(TwitchBot):
+
+class LayoutBot(TwitchBot):
     def __init__(self, *args):
-        super(StateBot, self).__init__(*args)
+        ip = None
+        if len(args) > 2:
+            ip = args[2]
+            args = args[:2]
+
+        super(LayoutBot, self).__init__(*args)
 
         self.state[LAYOUT_KEY] = {}
+        self.layout_url = DEFAULT_URL
+
+        if ip:
+            self.layout_url = ip
+
+        print(self.layout_url)
 
     def set_state(self, key, value, log=False):
         old = self.get_state(key)
         if old != value:
-            super(StateBot, self).set_state(key, value, log=log)
-            # self.do_command("change_" + key, self.user_name)
+            super(LayoutBot, self).set_state(key, value, log=log)
 
             if key == LAYOUT_KEY:
                 self.change_layout(old)
@@ -56,14 +68,6 @@ class StateBot(TwitchBot):
             TITLE_COMMAND, self.user_name, "{} {}".format(title, tag)
         )
 
-
-# if __name__ == "__main__":
-#     USER_NAME = "ahp_helper_bot"
-#     CHANNEL = "#athenshorseparty_"
-#     TOKEN = "oauth.token"
-#     SETTINGS = "bot_settings.json"
-#
-#
-#     BotLoader.load_bot(
-#         SETTINGS, StateBot, (USER_NAME, TOKEN)
-#     ).run(CHANNEL, "Logging on...")
+    def post_to_api(self, command_name, url, msg):
+        url = self.layout_url + url
+        super(LayoutBot, self).post_to_api(command_name, url, msg)
