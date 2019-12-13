@@ -8,6 +8,9 @@
 # directly, passing the arguments passed to them or predefined arguments
 # set by the Command object at initialization, either in sequence or
 # based on conditional values.
+import json
+
+import requests
 
 
 class Command:
@@ -313,3 +316,46 @@ class FileCommand(Command):
             file = open(self.file_name, "w")
             file.write(msg)
             file.close()
+
+
+class FormatCommand(Command):
+    def __init__(self, bot, name, restricted, f_str, *keys):
+        super(FormatCommand, self).__init__(bot, name, restricted)
+
+        self.f_str = f_str
+        self.keys = keys
+
+    def do(self, *args):
+        if super(FormatCommand, self).do(*args):
+            keys = [self.bot.get_state(k) for k in self.keys]
+            self.bot.send_chat(
+                self.f_str.format(*keys)
+            )
+
+
+class SubStateCommand(Command):
+    def __init__(self, bot, name, restricted, key, sub_key):
+        super(SubStateCommand, self).__init__(bot, name, restricted)
+
+        self.state_key = key
+        self.sub_key = sub_key
+
+    def do(self, user, *args):
+        if super(SubStateCommand, self).do(user, *args):
+            value = " ".join(args)
+
+            d = self.bot.get_state(self.state_key).copy()
+            d[self.sub_key] = value
+            self.bot.set_state(self.state_key, d)
+
+
+class PostCommand(Command):
+    def __init__(self, bot, name, restricted, url):
+        super(PostCommand, self).__init__(bot, name, restricted)
+        self.url = url
+
+    def do(self, *args):
+        if super(PostCommand, self).do(*args):
+            user, *msg = args
+            msg = " ".join(msg)
+            self.bot.post_to_api(self.name, self.url, msg)

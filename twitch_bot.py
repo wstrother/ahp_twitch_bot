@@ -4,6 +4,7 @@ import ahp_twitch_bot.commands as commands
 
 import json
 import inspect
+import requests
 
 #   The twitch_bot.py module defines a TwitchBot class that manages a set of
 # commands, listeners, and approved users that can use certain restricted
@@ -28,7 +29,6 @@ class TwitchBot:
         commands as well as listener routines that respond to certain trigger
         strings within the chat. Also contains a list of user names for approved
         users who can use special restricted commands
-
         :param user_name: str, user name of a valid Twitch account
         :param token_file: str, file name cotaining a valid oauth
             token for that account
@@ -47,18 +47,17 @@ class TwitchBot:
         Method creates a TwitchChat object to establish a connection
         to the Twitch IRC server and then joins a specific channel,
         representing the Twitch chat room of a specific user
-
         Upon successfully connecting to the server and joining the
         channel, this method runs a loop of the TwitchChat.update_chat()
         method, which in turn passes messages from the chat to the
         TwitchBot's 'handle_message()' method
-
         :param channel: str, name of the Twitch chat to join
         :param join_msg: str, optional chat messsage to send after
             successfully joining the chat room
         """
         host_name = channel[1:]
         self.approved_users.append(host_name)
+        self.approved_users.append(self.user_name)
 
         self.chat = TwitchChat(
             self.user_name,
@@ -81,7 +80,6 @@ class TwitchBot:
     def send_chat(self, message):
         """
         Sends a message to the Twitch chat
-
         :param message: str, message for chat
         """
         self.chat.send_chat(message)
@@ -90,7 +88,6 @@ class TwitchBot:
         """
         Parses messages sent to the chat to detect commands
         and pass to any active chat listeners.
-
         :param user: str, name of user who sent message
         :param msg: str, message sent to chat
         """
@@ -113,7 +110,6 @@ class TwitchBot:
         Checks for command name in commands dict and passes
         the user and args to the 'do' method of the associated
         command object
-
         :param command: str, command name
         :param user: str, name of user that used command
         :param args: tuple(str, str...), generic arguments exploded by
@@ -127,7 +123,6 @@ class TwitchBot:
         Instantiates a command object from a class and args then
         adds that command to the commands dict under the key of
         the command.name attribute
-
         :param cls: Command class or subclass
         :param args: initialization args for Command class
         """
@@ -140,17 +135,21 @@ class TwitchBot:
         each taking the form of some iterable to be passed as
         arguments to 'add_command()'
             (Command class or subclass, *args)
-
         :param coms: sets of arguments for 'add_command'
             method.
         """
         for c in coms:
             self.add_command(*c)
 
-    def set_state(self, key, value, log=True):
+    def get_state(self, key):
+        if key not in self.state:
+            self.state[key] = ""
+
+        return self.state[key]
+
+    def set_state(self, key, value, log=False):
         """
         Alters the 'state' dict to store a variable
-
         :param key: str, name of the state variable
         :param value: any value to be stored as variable
         :param log: bool, determines if a log message should
@@ -166,7 +165,6 @@ class TwitchBot:
         """
         Returns the value of some state variable stored
         in 'state' dict under the 'key' name
-
         :param key: str, name of state variable
         :return: value of the state variable, or None
         """
@@ -176,9 +174,7 @@ class TwitchBot:
         """
         Adds some chat listener to TwitchBot's list of active
         listeners if that listener hasn't already been added.
-
         Prints a log message to the console when listener is added
-
         :param listener: Listener object
         """
         if listener not in self.listeners:
@@ -191,13 +187,36 @@ class TwitchBot:
     def remove_listener(self, listener):
         """
         Removes listener from TwitchBot's list of active listeners
-
         :param listener: Listener object
         """
         if listener in self.listeners:
             self.listeners.pop(
                 self.listeners.index(listener)
             )
+
+    @staticmethod
+    def post_to_api(command_name, url, msg):
+        try:
+            data = json.loads(msg)
+        except ValueError:
+            print("bad data passed to {}: \n{}".format(
+                command_name, msg
+            ))
+            return False
+
+        p = None
+        response = "\nRESPONSE FROM SERVER:\n {}"
+
+        try:
+            p = requests.post(
+                url, data=data, headers={'Content-type': 'application/json'}
+            )
+        except requests.ConnectionError:
+            error = "API POST request to {} failed to connect to server".format(url)
+            print(response.format(error))
+
+        if p:
+            print(response.format(p.text))
 
 
 class BotLoader:
@@ -211,7 +230,6 @@ class BotLoader:
         """
         Creates a loader class the provides an interface to set a Twitch bot's
         attributes, commands, and listeners based on JSON data
-
         :param json_file: str, file_name for JSON data
         :param classes: list, any additional subclasses needed
         """
@@ -236,14 +254,11 @@ class BotLoader:
         """
         Method that creates a BotLoader object and instantiates
         a bot object from the 'bot_class' passed.
-
         The loader then sets attributes and
-
         :param json_file: str, file_name passed to __init__
         :param bot_class: TwitchBot or subclass used to instantiate bot
         :param bot_args: iterable of args passed to bot_class.__init__
         :param classes: list, additional classes passed to __init__
-
         :return: bot object with attributes, commands, listeners set
             according to JSON data
         """
@@ -261,7 +276,6 @@ class BotLoader:
         """
         This method provides a subclass hook that defines the routine for
         what bot attributes should be set using the JSON data
-
         :param bot: bot object to have attributes set
         """
         self.add_approved_users(bot)
@@ -269,7 +283,6 @@ class BotLoader:
     def add_approved_users(self, bot):
         """
         Adds user names for approved users to the bot object
-
         :param bot: bot object to have approved_users set
         """
         bot.approved_users += self.json[
@@ -282,13 +295,15 @@ class BotLoader:
         with Class objects if they match the name of any Class
         objects found in the 'class_dict' or aliases thereof as
         defined within the JSON data
-
         :param key: str, potential class name or alias
         :return: Class, if key corresponds to a Class or
                  str, if key does not
         """
         if type(key) in (tuple, list):
             return [self.get_class(i) for i in key]
+
+        elif type(key) is dict:
+            return {k: self.get_class(key[k]) for k in key}
 
         else:
             cd = self.class_dict
@@ -313,12 +328,10 @@ class BotLoader:
         Class names and Class name aliases, substituting the associated
         Class objects and returning a tuple that can be used as arguments
         for the 'set_commands()' method
-
         :param restricted: bool, passed to the Command object
             on initialization
         :param entry: tuple, generic args passed to the Command
             object on initialization
-
         :return: tuple, args to be passed to the bot object through
             the 'set_commands()' method
         """
@@ -343,7 +356,6 @@ class BotLoader:
         Iterates over the data entries specified within the 'restricted'
         and 'public' lists in the JSON data and generates a list of argument
         tuples to be passed to the bot object's 'set_commands()' method
-
         :param bot: bot object to have commands set
         """
         entries = []
@@ -363,14 +375,3 @@ class BotLoader:
             )
 
         bot.set_commands(*entries)
-
-
-# if __name__ == "__main__":
-#     USER_NAME = "bot_user_name"
-#     CHANNEL = "#your_channel_name"
-#     TOKEN = "oauth.token"
-#     SETTINGS = "bot_settings.json"
-#
-#     BotLoader.load_bot(
-#         SETTINGS, TwitchBot, (USER_NAME, TOKEN)
-#     ).run(CHANNEL, "Logging on...")
