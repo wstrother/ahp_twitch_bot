@@ -326,6 +326,11 @@ class FormatCommand(Command):
         self.keys = keys
 
     def do(self, *args):
+        """
+        The FormatCommand takes a formatting string and sends a message
+        to the chat of the form str.format(*keys), where the keys
+        correspond to state variables
+        """
         if super(FormatCommand, self).do(*args):
             keys = [self.bot.get_state(k) for k in self.keys]
             self.bot.send_chat(
@@ -341,6 +346,10 @@ class SubStateCommand(Command):
         self.sub_key = sub_key
 
     def do(self, user, *args):
+        """
+        SubStateCommand modifies the value of a certain key within
+        a state variable that is a dict type object.
+        """
         if super(SubStateCommand, self).do(user, *args):
             value = " ".join(args)
 
@@ -355,6 +364,11 @@ class PostCommand(Command):
         self.url = url
 
     def do(self, *args):
+        """
+        PostCommand sends a POST request to a URL defined by its 'url'
+        parameter. The contents passed to this command represent the
+        request body and typically should be properly formatted JSON.
+        """
         if super(PostCommand, self).do(*args):
             user, *msg = args
             msg = " ".join(msg)
