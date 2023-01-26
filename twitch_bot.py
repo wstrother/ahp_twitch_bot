@@ -1,6 +1,6 @@
-from ahp_twitch_bot.twitch_chat import TwitchChat
-import ahp_twitch_bot.listeners as listeners
-import ahp_twitch_bot.commands as commands
+from twitch_chat import TwitchChat
+import listeners as listeners
+import commands as commands
 
 import json
 import inspect
