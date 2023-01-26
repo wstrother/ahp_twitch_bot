@@ -157,7 +157,7 @@ class FormatCommand(InfoCommand):
     def do(self, *args):
         """
         The FormatCommand takes a formatting string and sends a message
-        to the chat of the form str.format(*keys), where the keys
+        to the chat of the form str.format(**keys), where the keys
         correspond to state variables
         """
         self.bot.send_chat(
