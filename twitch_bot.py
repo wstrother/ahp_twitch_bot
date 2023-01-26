@@ -101,9 +101,9 @@ class TwitchBot:
 
             self.do_command(command, user, *args)
 
-        else:
-            for listener in self.listeners:
-                listener.hear_message(user, msg)
+        # else:
+        #     for listener in self.listeners:
+        #         listener.hear_message(user, msg)
 
     def do_command(self, command, user, *args):
         """
@@ -170,29 +170,29 @@ class TwitchBot:
         """
         return self.state.get(key)
 
-    def add_listener(self, listener):
-        """
-        Adds some chat listener to TwitchBot's list of active
-        listeners if that listener hasn't already been added.
-        Prints a log message to the console when listener is added
-        :param listener: Listener object
-        """
-        if listener not in self.listeners:
-            self.listeners.append(listener)
+    # def add_listener(self, listener):
+    #     """
+    #     Adds some chat listener to TwitchBot's list of active
+    #     listeners if that listener hasn't already been added.
+    #     Prints a log message to the console when listener is added
+    #     :param listener: Listener object
+    #     """
+    #     if listener not in self.listeners:
+    #         self.listeners.append(listener)
 
-            print("\nadded listener \n\tuser: {}\n\ttrigger: {}\n".format(
-                listener.user, listener.trigger
-            ))
+    #         print("\nadded listener \n\tuser: {}\n\ttrigger: {}\n".format(
+    #             listener.user, listener.trigger
+    #         ))
 
-    def remove_listener(self, listener):
-        """
-        Removes listener from TwitchBot's list of active listeners
-        :param listener: Listener object
-        """
-        if listener in self.listeners:
-            self.listeners.pop(
-                self.listeners.index(listener)
-            )
+    # def remove_listener(self, listener):
+    #     """
+    #     Removes listener from TwitchBot's list of active listeners
+    #     :param listener: Listener object
+    #     """
+    #     if listener in self.listeners:
+    #         self.listeners.pop(
+    #             self.listeners.index(listener)
+    #         )
 
     @staticmethod
     def post_to_api(command_name, url, msg):
