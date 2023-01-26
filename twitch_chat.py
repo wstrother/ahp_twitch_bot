@@ -187,6 +187,9 @@ class TwitchChat:
 
         :param line: str, message from server to be parsed
         """
+
+        # PRIVMSG distinguishes messages sent by another user
+        # rather than the IRC server
         if "PRIVMSG" not in line:
             ping = self.check_for_ping(line)
             if not ping:
