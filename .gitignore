@@ -4,3 +4,4 @@ __pycache__/*
 oauth.token
 .vscode
 .TODO
+bot_settings.json
