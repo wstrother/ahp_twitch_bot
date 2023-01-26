@@ -133,9 +133,8 @@ class EchoCommand(Command):
         It is used to 'alias' commands for other bots, which should then
         be invoked as part of other commands used by the bot
         """
-        if super(EchoCommand, self).do(*args):
-            user, msg = args[0], " ".join(args[1:])
-            self.bot.send_chat("!{} {}".format(self.alias, msg))
+        user, msg = args[0], " ".join(args[1:])
+        self.bot.send_chat("!{} {}".format(self.alias, msg))
 
 
 class InfoCommand(Command):
@@ -171,8 +170,7 @@ class AliasCommand(Command):
         specific set of arguments defined by the 'other' and 'msg'
         attributes.
         """
-        if super(AliasCommand, self).do(user, *args):
-            self.do_other(self.other, user, *self.msg)
+        self.do_other(self.other, user, *self.msg)
 
 
 class SequenceCommand(Command):
@@ -195,9 +193,8 @@ class SequenceCommand(Command):
         commands, or create an anonymous command step from a given Command
         subclass
         """
-        if super(SequenceCommand, self).do(*args):
-            for step in self.steps:
-                step(*args)
+        for step in self.steps:
+            step(*args)
 
 
 class OptionCommand(Command):
@@ -221,18 +218,17 @@ class OptionCommand(Command):
         passed to it as a key for it's 'options' dict, invoking the command
         stored in that dict[key]
         """
-        if super(OptionCommand, self).do(*args):
-            args = list(args)
-            user = args.pop(0)
-            option = args.pop(0)
+        args = list(args)
+        user = args.pop(0)
+        option = args.pop(0)
 
-            if option in self.options:
-                self.options[option](user, *args)
+        if option in self.options:
+            self.options[option](user, *args)
 
-            else:
-                self.bot.send_chat(
-                    "Option '{}' not recognized".format(option)
-                )
+        else:
+            self.bot.send_chat(
+                "Option '{}' not recognized".format(option)
+            )
 
 
 class StateCommand(Command):
@@ -258,30 +254,28 @@ class StateCommand(Command):
         (i.e. the string of the chat message after the command
         is invoked)
         """
-        if super(StateCommand, self).do(*args):
-            user, value = args[0], " ".join(args[1:])
-            self.bot.set_state(self.state_key, value)
+        user, value = args[0], " ".join(args[1:])
+        self.bot.set_state(self.state_key, value)
 
 
-class ListenerCommand(Command):
-    def __init__(self, bot, name, restricted, listener):
-        """
-        :param listener: (ChatListener class or subclass, *args)
-            an iterable used to specify the listener class and
-            initialization arguments used to instantiate the
-            listener
-        """
-        super(ListenerCommand, self).__init__(bot, name, restricted)
-        cls, *args = listener
-        self.listener = cls(bot, *args)
+# class ListenerCommand(Command):
+#     def __init__(self, bot, name, restricted, listener):
+#         """
+#         :param listener: (ChatListener class or subclass, *args)
+#             an iterable used to specify the listener class and
+#             initialization arguments used to instantiate the
+#             listener
+#         """
+#         super(ListenerCommand, self).__init__(bot, name, restricted)
+#         cls, *args = listener
+#         self.listener = cls(bot, *args)
 
-    def do(self, *args):
-        """
-        The ListenerCommand is used to set chat listeners for the
-        bot
-        """
-        if super(ListenerCommand, self).do(*args):
-            self.bot.add_listener(self.listener)
+#     def do(self, *args):
+#         """
+#         The ListenerCommand is used to set chat listeners for the
+#         bot
+#         """
+#         self.bot.add_listener(self.listener)
 
 
 class FileCommand(Command):
@@ -297,13 +291,12 @@ class FileCommand(Command):
         The FileCommand is used to set the contents of some file
         that is used as a source for the stream layout
         """
-        if super(FileCommand, self).do(*args):
-            user, *msg = args
-            msg = " ".join(msg)
+        user, *msg = args
+        msg = " ".join(msg)
 
-            file = open(self.file_name, "w")
-            file.write(msg)
-            file.close()
+        file = open(self.file_name, "w")
+        file.write(msg)
+        file.close()
 
 
 class FormatCommand(Command):
@@ -319,11 +312,10 @@ class FormatCommand(Command):
         to the chat of the form str.format(*keys), where the keys
         correspond to state variables
         """
-        if super(FormatCommand, self).do(*args):
-            keys = [self.bot.get_state(k) for k in self.keys]
-            self.bot.send_chat(
-                self.f_str.format(*keys)
-            )
+        keys = [self.bot.get_state(k) for k in self.keys]
+        self.bot.send_chat(
+            self.f_str.format(*keys)
+        )
 
 
 class SubStateCommand(Command):
@@ -338,12 +330,11 @@ class SubStateCommand(Command):
         SubStateCommand modifies the value of a certain key within
         a state variable that is a dict type object.
         """
-        if super(SubStateCommand, self).do(user, *args):
-            value = " ".join(args)
+        value = " ".join(args)
 
-            d = self.bot.get_state(self.state_key).copy()
-            d[self.sub_key] = value
-            self.bot.set_state(self.state_key, d)
+        d = self.bot.get_state(self.state_key).copy()
+        d[self.sub_key] = value
+        self.bot.set_state(self.state_key, d)
 
 
 class PostCommand(Command):
@@ -357,7 +348,6 @@ class PostCommand(Command):
         parameter. The contents passed to this command represent the
         request body and typically should be properly formatted JSON.
         """
-        if super(PostCommand, self).do(*args):
-            user, *msg = args
-            msg = " ".join(msg)
-            self.bot.post_to_api(self.name, self.url, msg)
+        user, *msg = args
+        msg = " ".join(msg)
+        self.bot.post_to_api(self.name, self.url, msg)
