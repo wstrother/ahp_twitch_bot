@@ -1,4 +1,5 @@
 from twitch_bot import TwitchBot, BotLoader
+import atexit
 
 if __name__ == "__main__":
   USER_NAME = "ahp_twitch_bot"
@@ -7,6 +8,5 @@ if __name__ == "__main__":
   SETTINGS = "bot_settings.json"
   JOIN_MESSAGE = "Logging on..."
 
-  BotLoader.load_bot(
-      SETTINGS, TwitchBot, (USER_NAME, TOKEN)
-  ).run(CHANNEL, JOIN_MESSAGE)
+  with BotLoader.load_bot(SETTINGS, TwitchBot, (USER_NAME, TOKEN)) as bot:
+    bot.run(CHANNEL, JOIN_MESSAGE)

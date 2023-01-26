@@ -40,7 +40,13 @@ class TwitchBot:
         self.commands = {}
         self.state = {}
         self.listeners = []
+    
+    def __enter__(self):
+        return self
 
+    def __exit__(self, *args):
+        self.send_chat("Goodbye!")
+        
     def run(self, channel, join_msg):
         """
         Method creates a TwitchChat object to establish a connection
@@ -215,9 +221,9 @@ class BotLoader:
         self.class_dict = {
             c[0]: c[1] for c in inspect.getmembers(commands) if inspect.isclass(c[1])
         }
-        self.class_dict.update({
-            c[0]: c[1] for c in inspect.getmembers(listeners) if inspect.isclass(c[1])
-        })
+        # self.class_dict.update({
+        #     c[0]: c[1] for c in inspect.getmembers(listeners) if inspect.isclass(c[1])
+        # })
 
         if classes:
             self.class_dict.update({
