@@ -1,5 +1,4 @@
 from twitch_chat import TwitchChat
-import listeners as listeners
 import commands as commands
 
 import json
@@ -169,30 +168,6 @@ class TwitchBot:
         :return: value of the state variable, or None
         """
         return self.state.get(key)
-
-    # def add_listener(self, listener):
-    #     """
-    #     Adds some chat listener to TwitchBot's list of active
-    #     listeners if that listener hasn't already been added.
-    #     Prints a log message to the console when listener is added
-    #     :param listener: Listener object
-    #     """
-    #     if listener not in self.listeners:
-    #         self.listeners.append(listener)
-
-    #         print("\nadded listener \n\tuser: {}\n\ttrigger: {}\n".format(
-    #             listener.user, listener.trigger
-    #         ))
-
-    # def remove_listener(self, listener):
-    #     """
-    #     Removes listener from TwitchBot's list of active listeners
-    #     :param listener: Listener object
-    #     """
-    #     if listener in self.listeners:
-    #         self.listeners.pop(
-    #             self.listeners.index(listener)
-    #         )
 
     @staticmethod
     def post_to_api(command_name, url, msg):
