@@ -153,6 +153,18 @@ class InfoCommand(Command):
         self.bot.send_chat(self.info)
 
 
+class FormatCommand(InfoCommand):
+    def do(self, *args):
+        """
+        The FormatCommand takes a formatting string and sends a message
+        to the chat of the form str.format(*keys), where the keys
+        correspond to state variables
+        """
+        self.bot.send_chat(
+            self.f_str.format(**self.bot.state)
+        )
+
+
 class AliasCommand(Command):
     def __init__(self, bot, name, restricted, other, msg):
         """
@@ -258,6 +270,25 @@ class StateCommand(Command):
         self.bot.set_state(self.state_key, value)
 
 
+class SubStateCommand(Command):
+    def __init__(self, bot, name, restricted, key, sub_key):
+        super(SubStateCommand, self).__init__(bot, name, restricted)
+
+        self.state_key = key
+        self.sub_key = sub_key
+
+    def do(self, user, *args):
+        """
+        SubStateCommand modifies the value of a certain key within
+        a state variable that is a dict type object.
+        """
+        value = " ".join(args)
+
+        d = self.bot.get_state(self.state_key).copy()
+        d[self.sub_key] = value
+        self.bot.set_state(self.state_key, d)
+
+
 # class ListenerCommand(Command):
 #     def __init__(self, bot, name, restricted, listener):
 #         """
@@ -297,44 +328,6 @@ class FileCommand(Command):
         file = open(self.file_name, "w")
         file.write(msg)
         file.close()
-
-
-class FormatCommand(Command):
-    def __init__(self, bot, name, restricted, f_str, *keys):
-        super(FormatCommand, self).__init__(bot, name, restricted)
-
-        self.f_str = f_str
-        self.keys = keys
-
-    def do(self, *args):
-        """
-        The FormatCommand takes a formatting string and sends a message
-        to the chat of the form str.format(*keys), where the keys
-        correspond to state variables
-        """
-        keys = [self.bot.get_state(k) for k in self.keys]
-        self.bot.send_chat(
-            self.f_str.format(*keys)
-        )
-
-
-class SubStateCommand(Command):
-    def __init__(self, bot, name, restricted, key, sub_key):
-        super(SubStateCommand, self).__init__(bot, name, restricted)
-
-        self.state_key = key
-        self.sub_key = sub_key
-
-    def do(self, user, *args):
-        """
-        SubStateCommand modifies the value of a certain key within
-        a state variable that is a dict type object.
-        """
-        value = " ".join(args)
-
-        d = self.bot.get_state(self.state_key).copy()
-        d[self.sub_key] = value
-        self.bot.set_state(self.state_key, d)
 
 
 class PostCommand(Command):
