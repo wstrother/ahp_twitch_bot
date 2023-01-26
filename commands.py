@@ -9,7 +9,6 @@
 # set by the Command object at initialization, either in sequence or
 # based on conditional values.
 import json
-
 import requests
 
 
@@ -39,18 +38,8 @@ class Command:
         :param user: str, name of user invoking the command
         :param args: (str, str...), arbitrary arguments passed after
             invocation of the command
-        :return: bool, represents whether the appropriate conditions
-            have been met for the command to be invoked
         """
-        ok = True
-
-        if self.restricted:
-            ok = False
-
-            if user in self.bot.approved_users:
-                ok = True
-
-        return ok
+        pass
 
     def do_other(self, command, *args):
         """
@@ -162,8 +151,7 @@ class InfoCommand(Command):
         The InfoCommand causes the bot to send a message to the
         chat, as defined by its 'info' parameter.
         """
-        if super(InfoCommand, self).do(*args):
-            self.bot.send_chat(self.info)
+        self.bot.send_chat(self.info)
 
 
 class AliasCommand(Command):

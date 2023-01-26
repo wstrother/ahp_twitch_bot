@@ -110,6 +110,11 @@ class TwitchBot:
         #     for listener in self.listeners:
         #         listener.hear_message(user, msg)
 
+    def user_approved(self, command, user):
+        authorized = user.upper() in [u.upper() for u in self.approved_users]
+
+        return authorized if command.restricted else True
+
     def do_command(self, command, user, *args):
         """
         Checks for command name in commands dict and passes
@@ -120,8 +125,10 @@ class TwitchBot:
         :param args: tuple(str, str...), generic arguments exploded by
             space characters chat message after the command "!name" str
         """
-        if command in self.commands:
-            self.commands[command].do(user, *args)
+        command = self.commands.get(command)
+
+        if command and self.user_approved(command, user):
+            command.do(user, *args)
 
     def add_command(self, cls, *args):
         """
