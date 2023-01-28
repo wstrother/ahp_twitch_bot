@@ -263,6 +263,7 @@ class BotLoader:
         :param bot: bot object to have attributes set
         """
         self.add_approved_users(bot)
+        self.add_state_variables(bot)
 
     def add_approved_users(self, bot):
         """
@@ -271,6 +272,11 @@ class BotLoader:
         """
         bot.approved_users += self.json[
             self.__class__.APPROVED_USERS
+        ]
+    
+    def add_state_variables(self, bot):
+        bot.state = self.json[
+            self.__class__.STATE
         ]
 
     def get_class(self, key):
