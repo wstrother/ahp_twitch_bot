@@ -1,13 +1,15 @@
-#   The commands.py module defines a Command class and collection of
-# subclasses that provide various functions for the TwitchBot class
-# that can be invoked through the Twitch chat. Commands are invoked
-# through chat messages that have the form:
-#       "![command_name] arg1 arg2 arg3..."
-#   Any number of arguments can be passed (including none) and should
-# be separated by spaces. Various commands can invoke other commands
-# directly, passing the arguments passed to them or predefined arguments
-# set by the Command object at initialization, either in sequence or
-# based on conditional values.
+"""  
+    The commands.py module defines a Command class and collection of
+subclasses that provide various functions for the TwitchBot class
+that can be invoked through the Twitch chat. Commands are invoked
+through chat messages that have the form:
+      "![command_name] arg1 arg2 arg3..."
+  Any number of arguments can be passed (including none) and should
+be separated by spaces. Various commands can invoke other commands
+directly, passing the arguments passed to them or predefined arguments
+set by the Command object at initialization, either in sequence or
+based on conditional values.
+"""
 import json
 import requests
 
@@ -111,9 +113,11 @@ class Command:
                 return self.get_other(name, *args)
 
 
-#   The following Command subclasses represent common functions
-# for the Twitch bot. Usage is documented in the 'do(*args)'
-# method for each subclass.
+"""  
+    The following Command subclasses represent common functions
+for the Twitch bot. Usage is documented in the 'do(*args)'
+method for each subclass.
+"""
 
 
 class EchoCommand(Command):
@@ -137,23 +141,23 @@ class EchoCommand(Command):
         self.bot.send_chat("!{} {}".format(self.alias, msg))
 
 
-class InfoCommand(Command):
+class TextCommand(Command):
     def __init__(self, bot, name, restricted, info):
         """
         :param info: str, message for bot to send to the chat
         """
-        super(InfoCommand, self).__init__(bot, name, restricted)
-        self.info = info
+        super(TextCommand, self).__init__(bot, name, restricted)
+        self.text = info
 
     def do(self, *args):
         """
         The InfoCommand causes the bot to send a message to the
         chat, as defined by its 'info' parameter.
         """
-        self.bot.send_chat(self.info)
+        self.bot.send_chat(self.text)
 
 
-class FormatCommand(InfoCommand):
+class FormatCommand(TextCommand):
     def do(self, *args):
         """
         The FormatCommand takes a formatting string and sends a message
@@ -161,7 +165,7 @@ class FormatCommand(InfoCommand):
         correspond to state variables
         """
         self.bot.send_chat(
-            self.f_str.format(**self.bot.state)
+            self.text.format(**self.bot.state)
         )
 
 
@@ -289,10 +293,11 @@ class SubStateCommand(Command):
         self.bot.set_state(self.state_key, d)
 
 
-
 class PostCommand(Command):
     def __init__(self, bot, name, restricted, url):
         super(PostCommand, self).__init__(bot, name, restricted)
+        if url[0] == "{":
+            url = url.format(**bot.state)
         self.url = url
 
     def do(self, *args):
