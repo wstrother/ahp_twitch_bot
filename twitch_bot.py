@@ -1,6 +1,5 @@
 from twitch_chat import TwitchChat
-import commands as commands
-
+import commands
 import json
 import inspect
 import requests
@@ -38,6 +37,9 @@ class TwitchBot:
         self.user_name = user_name
         self.token_file = token_file
         self.chat = None
+
+        self._output_buffer = []
+        self._buffer_flag = False
 
         self.approved_users = []
         self.commands = {}
@@ -84,12 +86,23 @@ class TwitchBot:
 
                 raise e
 
+    def set_output_buffer(self):
+        self._buffer_flag = True
+    
+    def get_output_buffer(self):
+        self._buffer_flag = False
+
+        return self._output_buffer
+
     def send_chat(self, message):
         """
         Sends a message to the Twitch chat
         :param message: str, message for chat
         """
-        self.chat.send_chat(message)
+        if not self._buffer_flag:
+            self.chat.send_chat(message)
+        else:
+            self._output_buffer = message.split(" ")
 
     def handle_message(self, user, msg):
         """
@@ -151,13 +164,7 @@ class TwitchBot:
         for c in coms:
             self.add_command(*c)
 
-    def get_state(self, key):
-        if key not in self.state:
-            self.state[key] = ""
-
-        return self.state[key]
-
-    def set_state(self, key, value, log=False):
+    def set_state_variable(self, key, value, log=False):
         """
         Alters the 'state' dict to store a variable
         :param key: str, name of the state variable

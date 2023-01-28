@@ -11,7 +11,6 @@ set by the Command object at initialization, either in sequence or
 based on conditional values.
 """
 import json
-import requests
 
 
 class Command:
@@ -43,7 +42,7 @@ class Command:
         """
         pass
 
-    def do_other(self, command, *args):
+    def do_other(self, command, user, *args):
         """
         This method allows one command to invoke another
 
@@ -51,7 +50,7 @@ class Command:
         :param args: (str, str...), arbitrary arguments to be
             passed to other commmand
         """
-        self.bot.do_command(command, *args)
+        self.bot.do_command(command, user, *args)
 
     def get_other(self, name, *args):
         """
@@ -183,6 +182,20 @@ class JsonCommand(FormatCommand):
         self.bot.send_chat(
             json.dumps(data)
         )
+
+
+class ChainCommand(Command):
+    def __init__(self, bot, name, restricted, command1, command2):
+        super(ChainCommand, self).__init__(bot, name, restricted)
+        self.command1 = command1
+        self.command2 = command2
+
+    def do(self, user, *args):        
+        self.bot.set_output_buffer()
+        self.do_other(self.command1, user, *args)
+
+        output = self.bot.get_output_buffer()
+        self.do_other(self.command2, user, *output)
 
 
 class AliasCommand(Command):
