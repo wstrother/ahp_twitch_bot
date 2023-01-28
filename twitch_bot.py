@@ -5,20 +5,23 @@ import json
 import inspect
 import requests
 
-#   The twitch_bot.py module defines a TwitchBot class that manages a set of
-# commands, listeners, and approved users that can use certain restricted
-# commands. The bot should have a valid Twitch account associated with it and
-# will need an oauth token associated with that account to log into chat
-# channels on the Twitch IRC server.
-#   The bot account should typically be given mod powers in the chat room it
-# is to be used in, to prevent the server from timing out from sending too many
-# messages too close together.
+"""
+    The twitch_bot.py module defines a TwitchBot class that manages a set of
+commands, listeners, and approved users that can use certain restricted
+commands. The bot should have a valid Twitch account associated with it and
+will need an oauth token associated with that account to log into chat
+channels on the Twitch IRC server.
 
-#   The BotLoader class is also defined, which defines a JSON data interface
-# that allows for the programmatic creation of Command and Listener objects,
-# defined in the commands.py, and listeners.py modules respectively. The JSON
-# file provided can also provide a list of approved users who have access to
-# additional restricted bot commands.
+    The bot account should typically be given mod powers in the chat room it
+is to be used in, to prevent the server from timing out from sending too many
+messages too close together.
+
+    The BotLoader class is also defined, which defines a JSON data interface
+that allows for the programmatic creation of Command and Listener objects,
+defined in the commands.py, and listeners.py modules respectively. The JSON
+file provided can also provide a list of approved users who have access to
+additional restricted bot commands.
+"""
 
 
 class TwitchBot:
@@ -39,7 +42,6 @@ class TwitchBot:
         self.approved_users = []
         self.commands = {}
         self.state = {}
-        self.listeners = []
     
     def __enter__(self):
         return self
@@ -105,10 +107,6 @@ class TwitchBot:
             args = msg[1:]
 
             self.do_command(command, user, *args)
-
-        # else:
-        #     for listener in self.listeners:
-        #         listener.hear_message(user, msg)
 
     def user_approved(self, command, user):
         authorized = user.upper() in [u.upper() for u in self.approved_users]
@@ -213,6 +211,7 @@ class BotLoader:
     CLASSES = "classes"                 # class name aliases
     RESTRICTED = "restricted"           # restricted commands
     PUBLIC = "public"                   # unrestricted commands
+    STATE = "state"                     # state variables
 
     def __init__(self, json_file, classes=None):
         """
@@ -228,9 +227,6 @@ class BotLoader:
         self.class_dict = {
             c[0]: c[1] for c in inspect.getmembers(commands) if inspect.isclass(c[1])
         }
-        # self.class_dict.update({
-        #     c[0]: c[1] for c in inspect.getmembers(listeners) if inspect.isclass(c[1])
-        # })
 
         if classes:
             self.class_dict.update({
