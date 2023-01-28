@@ -42,7 +42,7 @@ class Command:
         """
         pass
 
-    def do_other(self, command, user, *args):
+    def do_other(self, name, user, *args):
         """
         This method allows one command to invoke another
 
@@ -50,7 +50,7 @@ class Command:
         :param args: (str, str...), arbitrary arguments to be
             passed to other commmand
         """
-        self.bot.do_command(command, user, *args)
+        self.bot.do_command(name, user, *args)
 
     def get_other(self, name, *args):
         """
@@ -300,7 +300,7 @@ class StateCommand(Command):
         is invoked)
         """
         user, value = args[0], " ".join(args[1:])
-        self.bot.set_state(self.state_key, value)
+        self.bot.set_state_variable(self.state_key, value)
 
 
 class SubStateCommand(Command):
