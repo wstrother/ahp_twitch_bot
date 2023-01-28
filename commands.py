@@ -289,46 +289,6 @@ class SubStateCommand(Command):
         self.bot.set_state(self.state_key, d)
 
 
-# class ListenerCommand(Command):
-#     def __init__(self, bot, name, restricted, listener):
-#         """
-#         :param listener: (ChatListener class or subclass, *args)
-#             an iterable used to specify the listener class and
-#             initialization arguments used to instantiate the
-#             listener
-#         """
-#         super(ListenerCommand, self).__init__(bot, name, restricted)
-#         cls, *args = listener
-#         self.listener = cls(bot, *args)
-
-#     def do(self, *args):
-#         """
-#         The ListenerCommand is used to set chat listeners for the
-#         bot
-#         """
-#         self.bot.add_listener(self.listener)
-
-
-class FileCommand(Command):
-    def __init__(self, bot, name, restricted, file_name):
-        """
-        :param file_name: str, name of file to be modified
-        """
-        super(FileCommand, self).__init__(bot, name, restricted)
-        self.file_name = file_name
-
-    def do(self, *args):
-        """
-        The FileCommand is used to set the contents of some file
-        that is used as a source for the stream layout
-        """
-        user, *msg = args
-        msg = " ".join(msg)
-
-        file = open(self.file_name, "w")
-        file.write(msg)
-        file.close()
-
 
 class PostCommand(Command):
     def __init__(self, bot, name, restricted, url):
