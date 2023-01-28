@@ -142,12 +142,12 @@ class EchoCommand(Command):
 
 
 class TextCommand(Command):
-    def __init__(self, bot, name, restricted, info):
+    def __init__(self, bot, name, restricted, text):
         """
         :param info: str, message for bot to send to the chat
         """
         super(TextCommand, self).__init__(bot, name, restricted)
-        self.text = info
+        self.text = text
 
     def do(self, *args):
         """
@@ -166,6 +166,22 @@ class FormatCommand(TextCommand):
         """
         self.bot.send_chat(
             self.text.format(**self.bot.state)
+        )
+
+class JsonCommand(FormatCommand):
+    def __init__(self, bot, name, restricted, text):
+        text = json.dumps(text)
+        super(JsonCommand, self).__init__(bot, name, restricted, text)
+
+    def do(self, *args):
+        data = json.loads(self.text)
+
+        for (key, value) in data.items():
+            if type(value) is str:
+                data[key] = value.format(**self.bot.state)
+
+        self.bot.send_chat(
+            json.dumps(data)
         )
 
 
