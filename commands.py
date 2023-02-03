@@ -150,20 +150,35 @@ class FormatCommand(TextCommand):
         )
 
 
-class JsonCommand(FormatCommand):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, text:str):
-        text = json.dumps(text)
+class JsonCommand(TextCommand):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, data:dict|list):
+        text = json.dumps(data)
         super(JsonCommand, self).__init__(bot, name, restricted, text)
 
-    def do(self, *args):
+    def format_json(self) -> str:
         data = json.loads(self.text)
-
         for (key, value) in data.items():
-            if type(value) is str:
-                data[key] = value.format(**self.bot.state)
+            data[key] = self.format_item(value)
+        
+        return json.dumps(data)
 
+    def format_item(self, item:object) -> object:
+        if type(item) is str:
+            return item.format(**self.bot.state)
+        
+        if type(item) is dict:
+            for (key, value) in item.items():
+                item[key] = self.format_item(value)
+            return item
+        
+        if type(item) is list:
+            return [self.format_item(i) for i in item]
+
+        return item
+
+    def do(self, *args):
         self.bot.send_chat(
-            json.dumps(data)
+            self.format_json()
         )
 
 
