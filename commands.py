@@ -122,27 +122,6 @@ method for each subclass.
 """
 
 
-class EchoCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, alias:str):
-        """
-        :param alias:str, name of other command for bot to invoke
-        """
-        super(EchoCommand, self).__init__(bot, name, restricted)
-        self.alias = alias
-
-    def do(self, *args):
-        """
-        The EchoCommand takes any arguments passed to it and makes the
-        bot send an additional message to the chat invoking another
-        command with the same arguments
-
-        It is used to 'alias' commands for other bots, which should then
-        be invoked as part of other commands used by the bot
-        """
-        user, msg = args[0], " ".join(args[1:])
-        self.bot.send_chat("!{} {}".format(self.alias, msg))
-
-
 class TextCommand(Command):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, text:str):
         """
