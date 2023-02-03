@@ -167,6 +167,7 @@ class FormatCommand(TextCommand):
             self.text.format(**self.bot.state)
         )
 
+
 class JsonCommand(FormatCommand):
     def __init__(self, bot, name, restricted, text):
         text = json.dumps(text)
