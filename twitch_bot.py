@@ -3,6 +3,7 @@ import commands
 import json
 import inspect
 import requests
+from typing import Type
 
 """
     The twitch_bot.py module defines a TwitchBot class that manages a set of
@@ -49,7 +50,8 @@ class TwitchBot:
         return self
 
     def __exit__(self, *args):
-        self.send_chat("Goodbye!")
+        if self.chat:
+            self.send_chat("Goodbye!")
         
     def run(self, channel, join_msg):
         """
@@ -136,6 +138,12 @@ class TwitchBot:
         :param args: tuple(str, str...), generic arguments exploded by
             space characters chat message after the command "!name" str
         """
+
+        ## dev breakpoint
+        if command == "bp" and user == "athenshorseparty_":
+            print("breakpoint")
+            breakpoint()
+        
         command = self.commands.get(command)
 
         if command and self.user_approved(command, user):
@@ -215,7 +223,6 @@ class TwitchBot:
 class BotLoader:
     # key names for JSON data
     APPROVED_USERS = "approved_users"   # users with access to restricted commands
-    CLASSES = "classes"                 # class name aliases
     RESTRICTED = "restricted"           # restricted commands
     PUBLIC = "public"                   # unrestricted commands
     STATE = "state"                     # state variables
@@ -240,8 +247,24 @@ class BotLoader:
                 c.__name__: c for c in classes
             })
 
+    @property
+    def approved_users(self):
+        return self.json[self.__class__.APPROVED_USERS]
+
+    @property
+    def restricted_commands(self):
+        return self.json[self.__class__.RESTRICTED]
+
+    @property
+    def public_commands(self):
+        return self.json[self.__class__.PUBLIC]
+
+    @property
+    def state(self):
+        return self.json[self.__class__.STATE]
+
     @classmethod
-    def load_bot(cls, json_file, bot_class, bot_args, classes=None):
+    def load_bot(cls, json_file: str, bot_class: Type[TwitchBot], bot_args: tuple, classes:None|dict=None) -> Type[TwitchBot]:
         """
         Method that creates a BotLoader object and instantiates
         a bot object from the 'bot_class' passed.
@@ -258,40 +281,19 @@ class BotLoader:
         )
 
         bot = bot_class(*bot_args)
-        loader.set_attributes(bot)
+
+        bot.approved_users += loader.approved_users
+        bot.state = loader.state
+
         loader.set_commands(bot)
 
         return bot
-
-    def set_attributes(self, bot):
-        """
-        This method provides a subclass hook that defines the routine for
-        what bot attributes should be set using the JSON data
-        :param bot: bot object to have attributes set
-        """
-        self.add_approved_users(bot)
-        self.add_state_variables(bot)
-
-    def add_approved_users(self, bot):
-        """
-        Adds user names for approved users to the bot object
-        :param bot: bot object to have approved_users set
-        """
-        bot.approved_users += self.json[
-            self.__class__.APPROVED_USERS
-        ]
-    
-    def add_state_variables(self, bot):
-        bot.state = self.json[
-            self.__class__.STATE
-        ]
 
     def get_class(self, key):
         """
         This method helps recursively substitute JSON data values
         with Class objects if they match the name of any Class
-        objects found in the 'class_dict' or aliases thereof as
-        defined within the JSON data
+        objects found in the 'class_dict'
         :param key: str, potential class name or alias
         :return: Class, if key corresponds to a Class or
                  str, if key does not
@@ -306,17 +308,8 @@ class BotLoader:
             cd = self.class_dict
             if key in cd:
                 return cd[key]
-
-            else:
-                aliases = self.json[
-                    self.__class__.CLASSES
-                ]
-
-                if key in aliases:
-                    return cd[aliases[key]]
-
-                else:
-                    return key
+            
+            return key
 
     def get_command(self, restricted, entry):
         """
@@ -348,7 +341,7 @@ class BotLoader:
 
         return tuple([cls, name, restricted] + args)
 
-    def set_commands(self, bot):
+    def set_commands(self, bot: TwitchBot):
         """
         Iterates over the data entries specified within the 'restricted'
         and 'public' lists in the JSON data and generates a list of argument
@@ -357,16 +350,12 @@ class BotLoader:
         """
         entries = []
 
-        for entry in self.json[
-            self.__class__.RESTRICTED
-        ]:
+        for entry in self.restricted_commands:
             entries.append(
                 self.get_command(True, entry)
             )
 
-        for entry in self.json[
-            self.__class__.PUBLIC
-        ]:
+        for entry in self.public_commands:
             entries.append(
                 self.get_command(False, entry)
             )
