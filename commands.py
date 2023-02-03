@@ -70,7 +70,7 @@ class Command:
 
     def get_step_function(self, entry):
         """
-        This method generates a method from an 'entry' that can
+        This method generates a function from an 'entry' that can
         have various forms in order to generate anonymous functions
         that give commands more flexibility in what effects they
         can cause
@@ -204,7 +204,7 @@ class AliasCommand(Command):
             for the other command
         """
         super(AliasCommand, self).__init__(bot, name, restricted)
-        self.other = other
+        self.command_func = self.get_step_function(other)
         self.args = args
 
     def do(self, user, *args):
@@ -213,7 +213,8 @@ class AliasCommand(Command):
         specific set of arguments defined by the 'other' and 'msg'
         attributes.
         """
-        self.do_other(self.other, user, *self.args)
+        self.command_func(user, *self.args+args)
+
 
 
 class SequenceCommand(Command):
