@@ -1,5 +1,5 @@
-from twitch_bot import TwitchBot, BotLoader
-import atexit
+from twitch_bot import TwitchBot
+from bot_loader import BotLoader
 
 if __name__ == "__main__":
   USER_NAME = "ahp_twitch_bot"
