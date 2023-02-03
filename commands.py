@@ -259,7 +259,7 @@ class OptionCommand(Command):
 
         for option in options:
             key = option[0]
-            self.options[key] = self.get_step_function(option[1:])
+            self.options[key] = self.get_step_function(option[1])
 
     def do(self, *args):
         """
