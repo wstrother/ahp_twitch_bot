@@ -232,3 +232,4 @@ class TwitchBot:
 
         if p:
             print(response.format(p.text))
+            return p.json()

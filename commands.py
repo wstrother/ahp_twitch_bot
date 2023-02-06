@@ -360,4 +360,6 @@ class GetCommand(Command):
         self.url = url.format(**bot.state)
     
     def do(self, *args):
-        self.bot.get_from_api(self.url)
+        data = self.bot.get_from_api(self.url)
+
+        self.bot.send_chat(data)
