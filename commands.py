@@ -211,6 +211,10 @@ class ChainCommand(Command):
         self.do_other(self.out_command, user, *args)
 
         output = self.bot.get_output_buffer()
+
+        # output should be able to be either a str (chat message with interpolated arguments: "!cmd arg1 arg2")
+        #           OR an arbitrary object
+        #   need a way to keep straight various use cases when bot commands invoke other commands
         self.do_other(self.in_command, user, *output)
 
 

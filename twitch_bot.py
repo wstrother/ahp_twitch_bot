@@ -94,7 +94,7 @@ class TwitchBot:
 
         return self._output_buffer
 
-    def send_chat(self, message):
+    def send_chat(self, message:str|object):
         """
         Sends a message to the Twitch chat
         :param message: str, message for chat
@@ -102,6 +102,7 @@ class TwitchBot:
         if not self._buffer_flag:
             self.chat.send_chat(message)
         else:
+            # self._output_buffer = message
             self._output_buffer = message.split(" ")
 
     def handle_message(self, user, msg):
@@ -145,6 +146,10 @@ class TwitchBot:
         command = self.commands.get(command)
 
         if command and self.user_approved(command, user):
+            # output = command.do(user, *args)
+            # if output:
+            #   self.send_chat
+
             command.do(user, *args)
 
     def add_command(self, cls, *args):
