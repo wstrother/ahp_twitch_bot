@@ -50,7 +50,7 @@ class TwitchBot:
         if self.chat:
             self.send_chat("Goodbye!")
         
-    def run(self, channel, join_msg):
+    def run(self, channel, join_msg, output=None):
         """
         Method creates a TwitchChat object to establish a connection
         to the Twitch IRC server and then joins a specific channel,
@@ -71,7 +71,8 @@ class TwitchBot:
             self.user_name,
             self.token_file,
             channel,
-            bot=self
+            bot=self,
+            output=output
         ).join_chat(join_msg)
 
         while True:

@@ -20,8 +20,9 @@ class TwitchChat:
     PORT = 6667
     CHAT_BUFFER_SIZE = 1000
     RECV_BUFFER_SIZE = 1024
+    PRINT_FLAG = "print"
 
-    def __init__(self, user_name, token_file, channel, bot=None):
+    def __init__(self, user_name, token_file, channel, bot=None, output=None):
         """
         Returns a TwitchChat object and initializes a connection to the
         'irc.twitch.tv' server via a socket object imported from the
@@ -38,6 +39,8 @@ class TwitchChat:
             irc server (should take the form '#channelname'
         :param bot: object, an instance of a TwitchBot or subclass,
             designed to handle and respond to messages from the chat
+        :param output: None|str, optional argument to specify output
+            and logging behavior.
         """
         self.user_name = user_name
         self.token_file = token_file
@@ -46,6 +49,7 @@ class TwitchChat:
 
         self.socket = self.get_socket()
         self.chat_buffer = []
+        self._output = output
 
     @property
     def chat_text(self):
@@ -229,7 +233,8 @@ class TwitchChat:
         :param user: str, name of user who sent the message
         :param msg: str, message sent to the chat
         """
-        self.print_chat_message(user, msg)
+        if self._output == self.__class__.PRINT_FLAG:
+            self.print_chat_message(user, msg)
 
         if self.bot:
             self.bot.handle_message(user, msg)
