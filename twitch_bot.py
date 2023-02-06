@@ -216,3 +216,19 @@ class TwitchBot:
 
         if p:
             print(response.format(p.text))
+    
+    @staticmethod
+    def get_from_api(url):
+        p = None
+        response = "\nRESPONSE FROM SERVER:\n {}"
+
+        try:
+            p = requests.get(
+                url, headers={'Content-type': 'application/json'}
+            )
+        except requests.ConnectionError:
+            error = "API POST request to {} failed to connect to server".format(url)
+            print(response.format(error))
+
+        if p:
+            print(response.format(p.text))

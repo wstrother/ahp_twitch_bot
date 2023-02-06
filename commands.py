@@ -182,6 +182,25 @@ class JsonCommand(TextCommand):
         )
 
 
+class ParseCommand(Command):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, key:str, sub_key:str=''):
+        super(ParseCommand, self).__init__(bot, name, restricted)
+        self.key = key
+        self.sub_key = sub_key
+    
+    def do(self, user, *args):
+        msg = args[1:].join(" ")
+        data = json.loads(msg)
+
+        state = self.bot.state
+        k, s = self.key, self.sub_key
+        if self.sub_key:
+            state[k][s] = data
+        else:
+            state[k] = data
+
+
+
 class ChainCommand(Command):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, out_command:str, in_command:str):
         super(ChainCommand, self).__init__(bot, name, restricted)
@@ -214,7 +233,6 @@ class AliasCommand(Command):
         attributes.
         """
         self.command_func(user, *self.args+args)
-
 
 
 class SequenceCommand(Command):
@@ -303,7 +321,7 @@ class StateCommand(Command):
 
 
 class SubStateCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key, sub_key):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str, sub_key:str):
         super(SubStateCommand, self).__init__(bot, name, restricted)
 
         self.state_key = key
@@ -322,11 +340,9 @@ class SubStateCommand(Command):
 
 
 class PostCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url=str):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
         super(PostCommand, self).__init__(bot, name, restricted)
-        if url[0] == "{":
-            url = url.format(**bot.state)
-        self.url = url
+        self.url = url.format(**bot.state)
 
     def do(self, *args):
         """
@@ -337,3 +353,12 @@ class PostCommand(Command):
         user, *msg = args
         msg = " ".join(msg)
         self.bot.post_to_api(self.name, self.url, msg)
+
+
+class GetCommand(Command):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
+        super(GetCommand, self).__init__(bot, name, restricted)
+        self.url = url.format(**bot.state)
+    
+    def do(self, *args):
+        self.bot.get_from_api(self.url)
