@@ -200,7 +200,6 @@ class ParseCommand(Command):
             state[k] = data
 
 
-
 class ChainCommand(Command):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, out_command:str, in_command:str):
         super(ChainCommand, self).__init__(bot, name, restricted)
