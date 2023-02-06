@@ -154,7 +154,7 @@ class TwitchChat:
         """
         chat_text = self.socket.recv(
             self.RECV_BUFFER_SIZE
-        ).decode("utf-8").split("\r\n")[:-1]
+        ).decode("utf-8", errors='replace').split("\r\n")[:-1]
 
         for line in chat_text:
             self.handle_server_message(line)
@@ -243,5 +243,8 @@ class TwitchChat:
         :param msg: str, message sent to chat
         """
         msg = msg.replace("\r", "")
-        print("{:>25}: {}".format(user, msg))
-
+        try:
+            print("{:>25}: {}".format(user, msg))
+        except UnicodeEncodeError:
+            msg = msg.encode('ascii', 'replace')
+            print("{:>25}: {}".format(user, msg))
