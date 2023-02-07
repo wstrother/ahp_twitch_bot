@@ -1,6 +1,7 @@
 from twitch_chat import TwitchChat
 import json
 import requests
+import traceback
 
 """
     The twitch_bot.py module defines a TwitchBot class that manages a set of
@@ -83,8 +84,7 @@ class TwitchBot:
                 msg = "Runtime error occurred '{}: {}'".format(
                     e.__class__.__name__, e)
                 self.send_chat(msg)
-
-                raise e
+                print(traceback.format_exc())
 
     def set_output_buffer(self):
         self._buffer_flag = True
@@ -125,16 +125,16 @@ class TwitchBot:
         if msg[0] == "!":
             msg = msg.split(" ")
             command = msg[0][1:]
-            args = msg[1:]
+            msg = " ".join(msg[1:])
 
-            self.do_command(command, user, *args)
+            self.do_command(command, user, msg)
 
     def user_approved(self, command, user):
         authorized = user.upper() in [u.upper() for u in self.approved_users]
 
         return authorized if command.restricted else True
 
-    def do_command(self, command, user, *args):
+    def do_command(self, command, user, msg):
         """
         Checks for command name in commands dict and passes
         the user and args to the 'do' method of the associated
@@ -153,8 +153,8 @@ class TwitchBot:
         command = self.commands.get(command)
 
         if command and self.user_approved(command, user):
-            output = command.do(user, *args)
-            if output:
+            output = command.do(user, msg)
+            if output is not None:
               self.send_chat(output)
 
     def add_command(self, cls, *args):
