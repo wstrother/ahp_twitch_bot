@@ -100,10 +100,17 @@ class TwitchBot:
         :param message: str, message for chat
         """
         if not self._buffer_flag:
+            # str conversion
+            if type(message) in (list, tuple):
+                message = " ".join([str(i) for i in message])
+            if type(message) is not str:
+                message = str(message)
+
             self.chat.send_chat(message)
+
         else:
-            # self._output_buffer = message
-            self._output_buffer = message.split(" ")
+            # if buffer flag set, store unconverted object
+            self._output_buffer = message
 
     def handle_message(self, user, msg):
         """
@@ -146,11 +153,9 @@ class TwitchBot:
         command = self.commands.get(command)
 
         if command and self.user_approved(command, user):
-            # output = command.do(user, *args)
-            # if output:
-            #   self.send_chat
-
-            command.do(user, *args)
+            output = command.do(user, *args)
+            if output:
+              self.send_chat(output)
 
     def add_command(self, cls, *args):
         """

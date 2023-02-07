@@ -135,7 +135,8 @@ class TextCommand(Command):
         The InfoCommand causes the bot to send a message to the
         chat, as defined by its 'info' parameter.
         """
-        self.bot.send_chat(self.text)
+        # self.bot.send_chat(self.text)
+        return self.text
 
 
 class FormatCommand(TextCommand):
@@ -145,9 +146,10 @@ class FormatCommand(TextCommand):
         to the chat of the form str.format(**keys), where the keys
         correspond to state variables
         """
-        self.bot.send_chat(
-            self.text.format(**self.bot.state)
-        )
+        # self.bot.send_chat(
+        #     self.text.format(**self.bot.state)
+        # )
+        return self.text.format(**self.bot.state)
 
 
 class JsonCommand(TextCommand):
@@ -177,27 +179,29 @@ class JsonCommand(TextCommand):
         return item
 
     def do(self, *args):
-        self.bot.send_chat(
-            self.format_json()
-        )
+        # self.bot.send_chat(
+        #     self.format_json()
+        # )
+        return self.format_json()
 
 
 class ParseCommand(Command):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, key:str, sub_key:str=''):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str, sub_key:str=''):
         super(ParseCommand, self).__init__(bot, name, restricted)
         self.key = key
         self.sub_key = sub_key
     
     def do(self, user, *args):
-        msg = args[1:].join(" ")
-        data = json.loads(msg)
+        data = json.loads(" ".join(args))
 
-        state = self.bot.state
-        k, s = self.key, self.sub_key
-        if self.sub_key:
-            state[k][s] = data
-        else:
-            state[k] = data
+        # state = self.bot.state
+        # k, s = self.key, self.sub_key
+        # if self.sub_key:
+        #     state[k][s] = data
+        # else:
+        #     state[k] = data
+
+        return data
 
 
 class ChainCommand(Command):
@@ -215,7 +219,7 @@ class ChainCommand(Command):
         # output should be able to be either a str (chat message with interpolated arguments: "!cmd arg1 arg2")
         #           OR an arbitrary object
         #   need a way to keep straight various use cases when bot commands invoke other commands
-        self.do_other(self.in_command, user, *output)
+        return self.do_other(self.in_command, user, *output)
 
 
 class AliasCommand(Command):
@@ -235,7 +239,7 @@ class AliasCommand(Command):
         specific set of arguments defined by the 'other' and 'msg'
         attributes.
         """
-        self.command_func(user, *self.args+args)
+        return self.command_func(user, *self.args+args)
 
 
 class SequenceCommand(Command):
@@ -288,12 +292,13 @@ class OptionCommand(Command):
         option = args.pop(0)
 
         if option in self.options:
-            self.options[option](user, *args)
+            return self.options[option](user, *args)
 
         else:
-            self.bot.send_chat(
-                "Option '{}' not recognized".format(option)
-            )
+            # self.bot.send_chat(
+            #     "Option '{}' not recognized".format(option)
+            # )
+            return "Option '{}' not recognized".format(option)
 
 
 class StateCommand(Command):
@@ -323,47 +328,28 @@ class StateCommand(Command):
         self.bot.set_state_variable(self.state_key, value)
 
 
-class SubStateCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str, sub_key:str):
-        super(SubStateCommand, self).__init__(bot, name, restricted)
+# class PostCommand(Command):
+#     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
+#         super(PostCommand, self).__init__(bot, name, restricted)
+#         self.url = url.format(**bot.state)
 
-        self.state_key = key
-        self.sub_key = sub_key
-
-    def do(self, user, *args):
-        """
-        SubStateCommand modifies the value of a certain key within
-        a state variable that is a dict type object.
-        """
-        value = " ".join(args)
-
-        d = self.bot.state.get(self.state_key).copy()
-        d[self.sub_key] = value
-        self.bot.set_state_variable(self.state_key, d)
+#     def do(self, *args):
+#         """
+#         PostCommand sends a POST request to a URL defined by its 'url'
+#         parameter. The contents passed to this command represent the
+#         request body and typically should be properly formatted JSON.
+#         """
+#         user, *msg = args
+#         msg = " ".join(msg)
+#         self.bot.post_to_api(self.name, self.url, msg)
 
 
-class PostCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
-        super(PostCommand, self).__init__(bot, name, restricted)
-        self.url = url.format(**bot.state)
-
-    def do(self, *args):
-        """
-        PostCommand sends a POST request to a URL defined by its 'url'
-        parameter. The contents passed to this command represent the
-        request body and typically should be properly formatted JSON.
-        """
-        user, *msg = args
-        msg = " ".join(msg)
-        self.bot.post_to_api(self.name, self.url, msg)
-
-
-class GetCommand(Command):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
-        super(GetCommand, self).__init__(bot, name, restricted)
-        self.url = url.format(**bot.state)
+# class GetCommand(Command):
+#     def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
+#         super(GetCommand, self).__init__(bot, name, restricted)
+#         self.url = url.format(**bot.state)
     
-    def do(self, *args):
-        data = self.bot.get_from_api(self.url)
+#     def do(self, *args):
+#         data = self.bot.get_from_api(self.url)
 
-        self.bot.send_chat(data)
+#         self.bot.send_chat(data)
