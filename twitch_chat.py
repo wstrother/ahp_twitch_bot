@@ -1,5 +1,4 @@
 from socket import socket
-from twitch_bot import TwitchBot
 from typing import Type
 
 #   The twitch_chat.py module defines a class called TwitchChat that represents a
@@ -24,7 +23,7 @@ class TwitchChat:
     RECV_BUFFER_SIZE = 1024
     PRINT_FLAG = "print"
 
-    def __init__(self, user_name:str, token_file:str, channel:str, bot:Type[TwitchBot], output:None|str=None):
+    def __init__(self, user_name:str, token_file:str, channel:str, bot, output:None|str=None):
         """
         Returns a TwitchChat object and initializes a connection to the
         'irc.twitch.tv' server via a socket object imported from the
