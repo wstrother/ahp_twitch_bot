@@ -284,7 +284,7 @@ class OptionCommand(Command):
 
 
 class StateCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str|int=None):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str|int|None=None, *sub_keys):
         """
         :param key:str, optional the name of the key in
             bot.state dict where variable is stored. If
@@ -296,6 +296,7 @@ class StateCommand(Command):
             key = name
 
         self.state_key = key
+        self.sub_keys = sub_keys
 
     def do(self, user, msg):
         """
@@ -306,7 +307,7 @@ class StateCommand(Command):
         (i.e. the string of the chat message after the command
         is invoked)
         """
-        self.bot.set_state_variable(self.state_key, msg)
+        self.bot.set_state_variable(self.state_key, msg, *self.sub_keys)
 
 
 ##
