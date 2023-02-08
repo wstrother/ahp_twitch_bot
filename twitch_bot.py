@@ -180,19 +180,20 @@ class TwitchBot:
         for c in coms:
             self.add_command(*c)
 
-    def set_state_variable(self, key, value, log=False):
+    def set_state_variable(self, key, value, *sub_keys):
         """
         Alters the 'state' dict to store a variable
         :param key: str, name of the state variable
         :param value: any value to be stored as variable
-        :param log: bool, determines if a log message should
-            be sent to the Twitch chat
         """
-        self.state[key] = value
-        if log:
-            self.send_chat("variable '{}' set to '{}'".format(
-                key, value
-            ))
+        state = self.state
+        if sub_keys:
+            state = state[key]
+            for sk in sub_keys[:-1]:
+                state = state[sk]
+            key = sub_keys[-1]
+
+        state[key] = value
 
     def get_state_variable(self, key):
         """
