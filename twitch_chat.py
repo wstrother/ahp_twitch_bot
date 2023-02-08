@@ -160,7 +160,7 @@ class TwitchChat:
             chat_text = self.socket.recv(
                 self.RECV_BUFFER_SIZE
             ).decode("utf-8", errors='replace').split("\r\n")[:-1]
-        except socket.error:
+        except ConnectionAbortedError:
             print("socket error")
             return
 
