@@ -309,6 +309,7 @@ class StateCommand(Command):
         self.bot.set_state_variable(self.state_key, msg)
 
 
+##
 ## requests / API calls
 def make_request(method:str) -> Type(requests.post):
     return {
@@ -340,11 +341,13 @@ def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) ->
 class RequestCommand(Command):
     def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, method:str):
         super(RequestCommand, self).__init__(bot, name, restricted)
-        self.url = url.format(**bot.state)
+        self.url = url
         self.method = method
 
     def do(self, user, msg):
-        return api_request(self.url, msg, self.method)
+        url = self.url.format(**self.bot.state)
+
+        return api_request(url, msg, self.method)
 
 
 class PostCommand(RequestCommand):
