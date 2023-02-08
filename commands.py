@@ -310,7 +310,6 @@ class StateCommand(Command):
 
 
 ##
-## new comment here
 ## requests / API calls
 def make_request(method:str) -> Type[requests.post]:
     return {
