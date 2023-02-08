@@ -100,10 +100,11 @@ class TwitchBot:
         """
         if not self._buffer_flag:
             # str conversion
-            if type(message) in (list, tuple):
-                message = " ".join([str(i) for i in message])
             if type(message) is not str:
                 message = str(message)
+            
+            if len(str) > 500:
+                message = message[:496] + "..."
 
             self.chat.send_chat(message)
 
