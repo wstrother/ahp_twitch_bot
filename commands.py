@@ -1,6 +1,8 @@
-import json
-from typing import Type
 from twitch_bot import TwitchBot
+from typing import Type
+import json
+import requests
+
 
 """  
     The commands.py module defines a Command class and collection of
@@ -307,28 +309,49 @@ class StateCommand(Command):
         self.bot.set_state_variable(self.state_key, msg)
 
 
-# class PostCommand(Command):
-#     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
-#         super(PostCommand, self).__init__(bot, name, restricted)
-#         self.url = url.format(**bot.state)
-
-#     def do(self, *args):
-#         """
-#         PostCommand sends a POST request to a URL defined by its 'url'
-#         parameter. The contents passed to this command represent the
-#         request body and typically should be properly formatted JSON.
-#         """
-#         user, *msg = args
-#         msg = " ".join(msg)
-#         self.bot.post_to_api(self.name, self.url, msg)
+## requests / API calls
+def make_request(method:str) -> Type(requests.post):
+    return {
+        "POST": requests.post,
+        "GET": requests.get,
+        "PUT": requests.put,
+        "PATCH": requests.patch
+    }[method]
 
 
-# class GetCommand(Command):
-#     def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
-#         super(GetCommand, self).__init__(bot, name, restricted)
-#         self.url = url.format(**bot.state)
+def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) -> str|dict:
+    if not headers:
+        headers = {'Content-type': 'application/json'}
+
+    p:None|requests.Response = None
+    try:
+        p = make_request(method)(
+            url, data=data, headers=headers
+        )
+    except requests.ConnectionError:
+        error = "API request to {} failed:\n".format(url)
+        error += p.text
+        return error
     
-#     def do(self, *args):
-#         data = self.bot.get_from_api(self.url)
+    if p:
+        return p.json()
 
-#         self.bot.send_chat(data)
+
+class RequestCommand(Command):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, method:str):
+        super(RequestCommand, self).__init__(bot, name, restricted)
+        self.url = url.format(**bot.state)
+        self.method = method
+
+    def do(self, user, msg):
+        return api_request(self.url, msg, self.method)
+
+
+class PostCommand(RequestCommand):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
+        super(PostCommand, self).__init__(bot, name, restricted, url, 'POST')
+
+
+class GetCommand(RequestCommand):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
+        super(GetCommand, self).__init__(bot, name, restricted, url, 'GET')

@@ -1,6 +1,5 @@
 from twitch_chat import TwitchChat
 import json
-import requests
 import traceback
 
 """
@@ -202,44 +201,3 @@ class TwitchBot:
         :return: value of the state variable, or None
         """
         return self.state.get(key)
-
-    @staticmethod
-    def post_to_api(command_name, url, msg):
-        try:
-            data = json.loads(msg)
-        except ValueError:
-            print("bad data passed to {}: \n{}".format(
-                command_name, msg
-            ))
-            return False
-
-        p = None
-        response = "\nRESPONSE FROM SERVER:\n {}"
-
-        try:
-            p = requests.post(
-                url, data=data, headers={'Content-type': 'application/json'}
-            )
-        except requests.ConnectionError:
-            error = "API POST request to {} failed to connect to server".format(url)
-            print(response.format(error))
-
-        if p:
-            print(response.format(p.text))
-    
-    @staticmethod
-    def get_from_api(url):
-        p = None
-        response = "\nRESPONSE FROM SERVER:\n {}"
-
-        try:
-            p = requests.get(
-                url, headers={'Content-type': 'application/json'}
-            )
-        except requests.ConnectionError:
-            error = "API POST request to {} failed to connect to server".format(url)
-            print(response.format(error))
-
-        if p:
-            print(response.format(p.text))
-            return p.json()
