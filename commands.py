@@ -138,7 +138,6 @@ class TextCommand(Command):
         The InfoCommand causes the bot to send a message to the
         chat, as defined by its 'info' parameter.
         """
-        # self.bot.send_chat(self.text)
         return self.text
 
 
@@ -149,9 +148,6 @@ class FormatCommand(TextCommand):
         to the chat of the form str.format(**keys), where the keys
         correspond to state variables
         """
-        # self.bot.send_chat(
-        #     self.text.format(**self.bot.state)
-        # )
         return self.text.format(**self.bot.state)
 
 
@@ -182,27 +178,15 @@ class JsonCommand(TextCommand):
         return item
 
     def do(self, user, msg):
-        # self.bot.send_chat(
-        #     self.format_json()
-        # )
         return self.format_json()
 
 
 class ParseCommand(Command):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool):
         super(ParseCommand, self).__init__(bot, name, restricted)
-        # self.key = key
-        # self.sub_key = sub_key
     
     def do(self, user, msg):
         data = json.loads(msg)
-
-        # state = self.bot.state
-        # k, s = self.key, self.sub_key
-        # if self.sub_key:
-        #     state[k][s] = data
-        # else:
-        #     state[k] = data
 
         return data
 
@@ -219,9 +203,6 @@ class ChainCommand(Command):
 
         output = self.bot.get_output_buffer()
 
-        # output should be able to be either a str (chat message with interpolated arguments: "!cmd arg1 arg2")
-        #           OR an arbitrary object
-        #   need a way to keep straight various use cases when bot commands invoke other commands
         return self.do_other(self.in_command, user, output)
 
 
@@ -297,9 +278,6 @@ class OptionCommand(Command):
             return self.options[option](user, msg)
 
         else:
-            # self.bot.send_chat(
-            #     "Option '{}' not recognized".format(option)
-            # )
             return "Option '{}' not recognized".format(option)
 
 
