@@ -1,5 +1,4 @@
 from socket import socket
-from typing import Type
 
 #   The twitch_chat.py module defines a class called TwitchChat that represents a
 # persistent connection to a Twitch chat room, using the IRC protocol with the
