@@ -196,16 +196,16 @@ class ParseCommand(Command):
 class ChainCommand(Command):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, out_command:str, in_command:str):
         super(ChainCommand, self).__init__(bot, name, restricted)
-        self.out_command = out_command
-        self.in_command = in_command
+        self.out_command = self.get_step_function(out_command)
+        self.in_command = self.get_step_function(in_command)
 
     def do(self, user, msg):       
         self.bot.set_output_buffer()
-        self.do_other(self.out_command, user, msg)
+        self.out_command(user, msg)
 
         output = self.bot.get_output_buffer()
 
-        return self.do_other(self.in_command, user, output)
+        return self.in_command(user, output)
 
 
 class AliasCommand(Command):
