@@ -156,6 +156,7 @@ class TwitchChat:
         IRC server and parse each message, passing them one 'line'
         at a time to the 'handle_server_message(line)' method
         """
+        # add initial connection check before main loop so connection can be properly reattempted
         try:
             chat_text = self.socket.recv(
                 self.RECV_BUFFER_SIZE
