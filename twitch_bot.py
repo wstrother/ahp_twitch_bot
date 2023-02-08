@@ -1,5 +1,4 @@
 from twitch_chat import TwitchChat
-import json
 import traceback
 
 """
@@ -93,24 +92,24 @@ class TwitchBot:
 
         return self._output_buffer
 
-    def send_chat(self, message:str|object):
+    def send_chat(self, msg:str|object):
         """
         Sends a message to the Twitch chat
         :param message: str, message for chat
         """
         if not self._buffer_flag:
             # str conversion
-            if type(message) is not str:
-                message = str(message)
+            if type(msg) is not str:
+                msg = str(msg)
             
-            if len(str) > 500:
-                message = message[:496] + "..."
+            if len(msg) > 500:
+                msg = msg[:496] + "..."
 
-            self.chat.send_chat(message)
+            self.chat.send_chat(msg)
 
         else:
             # if buffer flag set, store unconverted object
-            self._output_buffer = message
+            self._output_buffer = msg
 
     def handle_message(self, user, msg):
         """
@@ -150,7 +149,8 @@ class TwitchBot:
         if command == "bp" and user == "athenshorseparty_":
             breakpoint()
         
-        command = self.commands.get(command)
+        if type(command) is str:
+            command = self.commands.get(command)
 
         if command and self.user_approved(command, user):
             output = command.do(user, msg)

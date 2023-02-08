@@ -47,7 +47,7 @@ class Command:
         """
         pass
 
-    def do_other(self, name, user, msg):
+    def do_other(self, command, user, msg):
         """
         This method allows one command to invoke another
 
@@ -55,9 +55,9 @@ class Command:
         :param args:(str, str...), arbitrary arguments to be
             passed to other commmand
         """
-        self.bot.do_command(name, user, msg)
+        self.bot.do_command(command, user, msg)
 
-    def get_other(self, name, msg=''):
+    def get_other(self, command, msg=''):
         """
         This method returns an anonymous function that invokes a separate
         command with certain specified arguments passed to it, before
@@ -69,10 +69,10 @@ class Command:
             specified args passed to it
         """
         if not msg:
-            return lambda user, msg: self.do_other(name, user, msg)
+            return lambda user, new_msg: self.do_other(command, user, new_msg)
 
         else:
-            return lambda user, fake: self.do_other(name, user, msg)    # smells like code spirit
+            return lambda user, new_msg: self.do_other(command, user, msg)    # smells like code spirit
 
     def get_step_function(self, entry):
         """
@@ -113,7 +113,7 @@ class Command:
                 cls, *params = entry
                 command = cls(self.bot, "", self.restricted, *params)
 
-                return command.do
+                return self.get_other(command)
 
             else:
                 name, msg = entry
@@ -311,7 +311,7 @@ class StateCommand(Command):
 
 ##
 ## requests / API calls
-def make_request(method:str) -> Type(requests.post):
+def make_request(method:str) -> Type[requests.post]:
     return {
         "POST": requests.post,
         "GET": requests.get,
