@@ -1,6 +1,8 @@
-import json
-from typing import Type
 from twitch_bot import TwitchBot
+from typing import Type
+import json
+import requests
+
 
 """  
     The commands.py module defines a Command class and collection of
@@ -32,7 +34,7 @@ class Command:
         self.name = name
         self.restricted = restricted
 
-    def do(self, user, *args):
+    def do(self, user, msg):
         """
         This method simply checks whether the user invoking the command
         has sufficient privileges. Command subclasses should make a
@@ -45,7 +47,7 @@ class Command:
         """
         pass
 
-    def do_other(self, name, user, *args):
+    def do_other(self, command, user, msg):
         """
         This method allows one command to invoke another
 
@@ -53,9 +55,9 @@ class Command:
         :param args:(str, str...), arbitrary arguments to be
             passed to other commmand
         """
-        self.bot.do_command(name, user, *args)
+        self.bot.do_command(command, user, msg)
 
-    def get_other(self, name, *args):
+    def get_other(self, command, msg=''):
         """
         This method returns an anonymous function that invokes a separate
         command with certain specified arguments passed to it, before
@@ -66,7 +68,11 @@ class Command:
         :return:anonymous function, invoking other command with
             specified args passed to it
         """
-        return lambda user, *rgs:self.do_other(name, user, *list(args) + list(rgs))
+        if not msg:
+            return lambda user, new_msg: self.do_other(command, user, new_msg)
+
+        else:
+            return lambda user, new_msg: self.do_other(command, user, msg)    # smells like code spirit
 
     def get_step_function(self, entry):
         """
@@ -104,15 +110,14 @@ class Command:
 
         else:
             if type(entry[0]) is type(Command):
-                cls, entry = entry[0], entry[1:]
-                command = cls(self.bot, "", self.restricted, *entry)
+                cls, *params = entry
+                command = cls(self.bot, "", self.restricted, *params)
 
-                return command.do
+                return self.get_other(command)
 
             else:
-                name, args = entry[0], entry[1:]
-
-                return self.get_other(name, *args)
+                name, msg = entry
+                return self.get_other(name, msg)
 
 
 """  
@@ -130,24 +135,22 @@ class TextCommand(Command):
         super(TextCommand, self).__init__(bot, name, restricted)
         self.text = text
 
-    def do(self, *args):
+    def do(self, user, msg):
         """
         The InfoCommand causes the bot to send a message to the
         chat, as defined by its 'info' parameter.
         """
-        self.bot.send_chat(self.text)
+        return self.text
 
 
 class FormatCommand(TextCommand):
-    def do(self, *args):
+    def do(self, user, msg):
         """
         The FormatCommand takes a formatting string and sends a message
         to the chat of the form str.format(**keys), where the keys
         correspond to state variables
         """
-        self.bot.send_chat(
-            self.text.format(**self.bot.state)
-        )
+        return self.text.format(**self.bot.state)
 
 
 class JsonCommand(TextCommand):
@@ -176,28 +179,18 @@ class JsonCommand(TextCommand):
 
         return item
 
-    def do(self, *args):
-        self.bot.send_chat(
-            self.format_json()
-        )
+    def do(self, user, msg):
+        return self.format_json()
 
 
 class ParseCommand(Command):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, key:str, sub_key:str=''):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool):
         super(ParseCommand, self).__init__(bot, name, restricted)
-        self.key = key
-        self.sub_key = sub_key
     
-    def do(self, user, *args):
-        msg = args[1:].join(" ")
+    def do(self, user, msg):
         data = json.loads(msg)
 
-        state = self.bot.state
-        k, s = self.key, self.sub_key
-        if self.sub_key:
-            state[k][s] = data
-        else:
-            state[k] = data
+        return data
 
 
 class ChainCommand(Command):
@@ -206,20 +199,17 @@ class ChainCommand(Command):
         self.out_command = out_command
         self.in_command = in_command
 
-    def do(self, user, *args):       
+    def do(self, user, msg):       
         self.bot.set_output_buffer()
-        self.do_other(self.out_command, user, *args)
+        self.do_other(self.out_command, user, msg)
 
         output = self.bot.get_output_buffer()
 
-        # output should be able to be either a str (chat message with interpolated arguments: "!cmd arg1 arg2")
-        #           OR an arbitrary object
-        #   need a way to keep straight various use cases when bot commands invoke other commands
-        self.do_other(self.in_command, user, *output)
+        return self.do_other(self.in_command, user, output)
 
 
 class AliasCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, other:str, *args):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, other:str, msg:str|object):
         """
         :param other:str, name of other command to be invoked
         :param msg:str, message string to be used as 'arguments'
@@ -227,15 +217,15 @@ class AliasCommand(Command):
         """
         super(AliasCommand, self).__init__(bot, name, restricted)
         self.command_func = self.get_step_function(other)
-        self.args = args
+        self.msg = msg
 
-    def do(self, user, *args):
+    def do(self, user, msg):
         """
         The AliasCommand is used to invoke another command with a
         specific set of arguments defined by the 'other' and 'msg'
         attributes.
         """
-        self.command_func(user, *self.args+args)
+        return self.command_func(user, self.msg)
 
 
 class SequenceCommand(Command):
@@ -250,7 +240,7 @@ class SequenceCommand(Command):
         for entry in sequence:
             self.steps.append(self.get_step_function(entry))
 
-    def do(self, *args):
+    def do(self, user, msg):
         """
         The SequenceCommand is used to link a number of different commands
         together. The initialization arguments passed to this class can take
@@ -259,7 +249,7 @@ class SequenceCommand(Command):
         subclass
         """
         for step in self.steps:
-            step(*args)
+            step(user, msg)
 
 
 class OptionCommand(Command):
@@ -277,23 +267,20 @@ class OptionCommand(Command):
             key = option[0]
             self.options[key] = self.get_step_function(option[1])
 
-    def do(self, *args):
+    def do(self, user, msg):
         """
         The OptionCommand creates a command that uses the first argument
         passed to it as a key for it's 'options' dict, invoking the command
         stored in that dict[key]
         """
-        args = list(args)
-        user = args.pop(0)
-        option = args.pop(0)
+        option, *msg = msg.split(" ")
+        msg = " ".join(msg)
 
         if option in self.options:
-            self.options[option](user, *args)
+            return self.options[option](user, msg)
 
         else:
-            self.bot.send_chat(
-                "Option '{}' not recognized".format(option)
-            )
+            return "Option '{}' not recognized".format(option)
 
 
 class StateCommand(Command):
@@ -310,7 +297,7 @@ class StateCommand(Command):
 
         self.state_key = key
 
-    def do(self, *args):
+    def do(self, user, msg):
         """
         The StateCommand allows the bot to set so called
         'state variables' that are stored in a 'state' dict
@@ -319,51 +306,55 @@ class StateCommand(Command):
         (i.e. the string of the chat message after the command
         is invoked)
         """
-        user, value = args[0], " ".join(args[1:])
-        self.bot.set_state_variable(self.state_key, value)
+        self.bot.set_state_variable(self.state_key, msg)
 
 
-class SubStateCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, key:str, sub_key:str):
-        super(SubStateCommand, self).__init__(bot, name, restricted)
-
-        self.state_key = key
-        self.sub_key = sub_key
-
-    def do(self, user, *args):
-        """
-        SubStateCommand modifies the value of a certain key within
-        a state variable that is a dict type object.
-        """
-        value = " ".join(args)
-
-        d = self.bot.state.get(self.state_key).copy()
-        d[self.sub_key] = value
-        self.bot.set_state_variable(self.state_key, d)
+##
+## requests / API calls
+def make_request(method:str) -> Type[requests.post]:
+    return {
+        "POST": requests.post,
+        "GET": requests.get,
+        "PUT": requests.put,
+        "PATCH": requests.patch
+    }[method]
 
 
-class PostCommand(Command):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
-        super(PostCommand, self).__init__(bot, name, restricted)
-        self.url = url.format(**bot.state)
+def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) -> str|dict:
+    if not headers:
+        headers = {'Content-type': 'application/json'}
 
-    def do(self, *args):
-        """
-        PostCommand sends a POST request to a URL defined by its 'url'
-        parameter. The contents passed to this command represent the
-        request body and typically should be properly formatted JSON.
-        """
-        user, *msg = args
-        msg = " ".join(msg)
-        self.bot.post_to_api(self.name, self.url, msg)
-
-
-class GetCommand(Command):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
-        super(GetCommand, self).__init__(bot, name, restricted)
-        self.url = url.format(**bot.state)
+    p:None|requests.Response = None
+    try:
+        p = make_request(method)(
+            url, data=data, headers=headers
+        )
+    except requests.ConnectionError:
+        error = "API request to {} failed:\n".format(url)
+        error += p.text
+        return error
     
-    def do(self, *args):
-        data = self.bot.get_from_api(self.url)
+    if p:
+        return p.json()
 
-        self.bot.send_chat(data)
+
+class RequestCommand(Command):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, method:str):
+        super(RequestCommand, self).__init__(bot, name, restricted)
+        self.url = url
+        self.method = method
+
+    def do(self, user, msg):
+        url = self.url.format(**self.bot.state)
+
+        return api_request(url, msg, self.method)
+
+
+class PostCommand(RequestCommand):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
+        super(PostCommand, self).__init__(bot, name, restricted, url, 'POST')
+
+
+class GetCommand(RequestCommand):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
+        super(GetCommand, self).__init__(bot, name, restricted, url, 'GET')
