@@ -5,3 +5,4 @@ oauth.token
 .vscode
 .TODO
 *.json
+modules/*
