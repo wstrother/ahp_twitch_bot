@@ -58,7 +58,7 @@ class BotLoader:
         if modules:
             for path in modules:
                 if os.path.isdir(path):
-                    paths += os.listdir(path)
+                    paths += [os.path.join(path, f) for f in os.listdir(path) if '.json' in f]
                 else:
                     paths.append(path)
         
@@ -91,7 +91,7 @@ class BotLoader:
         :return: bot object with attributes, commands, listeners set
             according to JSON data
         """
-        data = cls.load_modules(cls, json_file)
+        data = cls.load_modules(json_file)
         
         loader = cls(
             data, classes=classes
