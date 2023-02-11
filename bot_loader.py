@@ -3,6 +3,7 @@ import inspect
 import commands
 import json
 from typing import Type
+import os
 
 
 class BotLoader:
@@ -11,17 +12,16 @@ class BotLoader:
     RESTRICTED = "restricted"           # restricted commands
     PUBLIC = "public"                   # unrestricted commands
     STATE = "state"                     # state variables
+    MODULES = "modules"                 # extra json modules
 
-    def __init__(self, json_file, classes=None):
+    def __init__(self, json:dict, classes=None|list):
         """
         Creates a loader class the provides an interface to set a Twitch bot's
         attributes, commands, and listeners based on JSON data
         :param json_file: str, file_name for JSON data
         :param classes: list, any additional subclasses needed
         """
-        file = open(json_file, "r")
-        self.json = json.load(file)
-        file.close()
+        self.json = json
 
         self.class_dict = {
             c[0]: c[1] for c in inspect.getmembers(commands) if inspect.isclass(c[1])
@@ -47,9 +47,39 @@ class BotLoader:
     @property
     def state(self):
         return self.json[self.__class__.STATE]
+    
+    @classmethod
+    def load_modules(cls, json_file:str):
+        with open(json_file, 'r') as file:
+            data:dict = json.load(file)     # bot_settings.json spec should be top level dict
+
+        modules = data.get(cls.MODULES)
+        paths = []
+        if modules:
+            for path in modules:
+                if os.path.isdir(path):
+                    paths += os.listdir(path)
+                else:
+                    paths.append(path)
+        
+        state:dict = data[cls.STATE]
+        for path in paths:
+            with open(path, 'r') as file:
+                module:dict = json.load(file)
+                
+                # json modules should only add to state, restricted and public commands
+                # NEVER add to approved users
+                for key in (cls.RESTRICTED, cls.PUBLIC):
+                    new_commands = module.get(key, [])
+                    data[key] += new_commands
+                
+                new_state = module.get(cls.STATE, {})
+                state.update(new_state)
+        
+        return data
 
     @classmethod
-    def load_bot(cls, json_file: str, bot_class: Type[TwitchBot], bot_args: tuple, classes:None|dict=None) -> Type[TwitchBot]:
+    def load_bot(cls, json_file:str, bot_class:Type[TwitchBot], bot_args:tuple, classes:None|list=None) -> Type[TwitchBot]:
         """
         Method that creates a BotLoader object and instantiates
         a bot object from the 'bot_class' passed.
@@ -61,8 +91,10 @@ class BotLoader:
         :return: bot object with attributes, commands, listeners set
             according to JSON data
         """
+        data = cls.load_modules(cls, json_file)
+        
         loader = cls(
-            json_file, classes=classes
+            data, classes=classes
         )
 
         bot = bot_class(*bot_args)
