@@ -163,7 +163,8 @@ class JsonCommand(TextCommand):
         for (key, value) in data.items():
             data[key] = self.format_item(value)
         
-        return json.dumps(data)
+        # return json.dumps(data)
+        return data
 
     def format_item(self, item:object) -> object:
         if type(item) is str:
@@ -330,9 +331,9 @@ def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) ->
         p = make_request(method)(
             url, data=data, headers=headers
         )
-    except requests.ConnectionError:
+    except requests.ConnectionError as e:
         error = "API request to {} failed:\n".format(url)
-        error += p.text
+        # error += e.response.text
         return error
     
     if p:
