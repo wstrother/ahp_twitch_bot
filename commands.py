@@ -318,7 +318,8 @@ def make_request(method:str) -> Type[requests.post]:
         "POST": requests.post,
         "GET": requests.get,
         "PUT": requests.put,
-        "PATCH": requests.patch
+        "PATCH": requests.patch,
+        "DELETE": requests.delete
     }[method]
 
 
@@ -341,20 +342,31 @@ def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) ->
 
 
 class RequestCommand(Command):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, method:str):
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, method:str, headers:None|dict=None):
         super(RequestCommand, self).__init__(bot, name, restricted)
         self.url = url
         self.method = method
+        self.headers = headers
 
     def do(self, user, msg):
         url = self.url.format(**self.bot.state)
 
-        return api_request(url, msg, self.method)
+        return api_request(url, msg, self.method, self.headers)
 
 
 class PostCommand(RequestCommand):
-    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
         super(PostCommand, self).__init__(bot, name, restricted, url, 'POST')
+
+
+class PatchCommand(RequestCommand):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
+        super(PatchCommand, self).__init__(bot, name, restricted, url, 'PATCH')
+
+
+class DeleteCommand(RequestCommand):
+    def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
+        super(DeleteCommand, self).__init__(bot, name, restricted, url, 'DELETE')
 
 
 class GetCommand(RequestCommand):
