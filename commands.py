@@ -319,8 +319,28 @@ class StateCommand(Command):
 
 
 class MathCommand(Command):
-    def __init__(self, bot: type[TwitchBot], name: str, restricted: bool):
+    def __init__(self, bot: type[TwitchBot], name: str, restricted: bool, op: str, value: int|float):
+        """
+        Args:
+            op (str): key of operation type ('add' or 'multiply')
+            value (int | float): the value for the right side of operation
+        """
         super(MathCommand, self).__init__(bot, name, restricted)
+        self.operation = {
+            "add": lambda n: n + value,
+            "multiply": lambda n: n * value
+        }[op]
+    
+    def do(self, user, msg):
+        try:
+            msg = int(msg)
+        except ValueError:
+            try:
+                msg = float(msg)
+            except ValueError:
+                raise ValueError(f'Value passed to MathCommand cannot be cast to numeric type: "{msg}"')
+        
+        return self.operation(msg)
 
 ##
 ## requests / API calls
