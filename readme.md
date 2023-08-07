@@ -15,7 +15,7 @@ powerful and flexible ways to acheive more functionality.
 * [Requests](https://pypi.org/project/requests/)
 * A separate Twitch account for your bot
 
---
+---
 
 ## Usage
 
