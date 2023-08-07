@@ -158,30 +158,33 @@ class JsonCommand(TextCommand):
         text = json.dumps(data)
         super(JsonCommand, self).__init__(bot, name, restricted, text)
 
-    def format_json(self) -> str:
-        data = json.loads(self.text)
+    @staticmethod
+    def format_json(text, state:dict) -> str:
+        data = json.loads(text)
         for (key, value) in data.items():
-            data[key] = self.format_item(value)
+            data[key] = JsonCommand.format_item(value, state)
         
         # return json.dumps(data)
         return data
 
-    def format_item(self, item:object) -> object:
+    @staticmethod
+    def format_item(item:object, state:dict) -> object:
         if type(item) is str:
-            return item.format(**self.bot.state)
+            return item.format(**state)
         
         if type(item) is dict:
             for (key, value) in item.items():
-                item[key] = self.format_item(value)
+                item[key] = JsonCommand.format_item(value)
             return item
         
         if type(item) is list:
-            return [self.format_item(i) for i in item]
+            return [JsonCommand.format_item(i) for i in item]
 
         return item
 
     def do(self, user, msg):
-        return self.format_json()
+        state = self.bot.state
+        return self.format_json(self.text, state)
 
 
 class ParseCommand(Command):
@@ -346,29 +349,30 @@ class RequestCommand(Command):
         super(RequestCommand, self).__init__(bot, name, restricted)
         self.url = url
         self.method = method
-        self.headers = headers
+        self.headers = json.dumps(headers)
 
     def do(self, user, msg):
         url = self.url.format(**self.bot.state)
+        headers = JsonCommand.format_json(self.headers, self.bot.state)
 
-        return api_request(url, msg, self.method, self.headers)
+        return api_request(url, msg, self.method, headers)
 
 
 class PostCommand(RequestCommand):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
-        super(PostCommand, self).__init__(bot, name, restricted, url, 'POST')
+        super(PostCommand, self).__init__(bot, name, restricted, url, 'POST', headers)
 
 
 class PatchCommand(RequestCommand):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
-        super(PatchCommand, self).__init__(bot, name, restricted, url, 'PATCH')
+        super(PatchCommand, self).__init__(bot, name, restricted, url, 'PATCH', headers)
 
 
 class DeleteCommand(RequestCommand):
     def __init__(self, bot:Type[TwitchBot], name:str, restricted:bool, url:str, headers:None|dict=None):
-        super(DeleteCommand, self).__init__(bot, name, restricted, url, 'DELETE')
+        super(DeleteCommand, self).__init__(bot, name, restricted, url, 'DELETE', headers)
 
 
 class GetCommand(RequestCommand):
-    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str):
-        super(GetCommand, self).__init__(bot, name, restricted, url, 'GET')
+    def __init__(self, bot: Type[TwitchBot], name: str, restricted: bool, url:str, headers:None|dict=None):
+        super(GetCommand, self).__init__(bot, name, restricted, url, 'GET', headers)
