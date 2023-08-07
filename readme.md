@@ -1,4 +1,4 @@
-# 'ahp_twitch_bot'
+# AHP Twitch Bot
 
 Welcome to my new repository for a simple little
 Python package that will help anyone make a helpful,
