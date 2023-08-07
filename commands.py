@@ -3,7 +3,6 @@ from typing import Type
 import json
 import requests
 
-
 """  
     The commands.py module defines a Command class and collection of
 subclasses that provide various functions for the TwitchBot class
@@ -184,6 +183,8 @@ class JsonCommand(TextCommand):
 
     def do(self, user, msg):
         state = self.bot.state
+        state['user'] = user
+        state['msg'] = msg
         return self.format_json(self.text, state)
 
 
@@ -337,11 +338,13 @@ def api_request(url:str, data:dict, method:str='GET', headers:None|dict=None) ->
         )
     except requests.ConnectionError as e:
         error = "API request to {} failed:\n".format(url)
-        # error += e.response.text
         return error
     
     if p:
-        return p.json()
+        try:
+            return p.json()
+        except json.JSONDecodeError:
+            return p.text
 
 
 class RequestCommand(Command):
