@@ -295,6 +295,9 @@ class StateCommand(Command):
             bot.state dict where variable is stored. If
             key is None then the command name will be used
             for state variable key
+        :param sub_keys:list, optional arbitrary depth
+            sequence of sub keys to be used as index or key values
+            for inner objects (dict and list)
         """
         super(StateCommand, self).__init__(bot, name, restricted)
         if key is None:
@@ -314,6 +317,10 @@ class StateCommand(Command):
         """
         self.bot.set_state_variable(self.state_key, msg, *self.sub_keys)
 
+
+class MathCommand(Command):
+    def __init__(self, bot: type[TwitchBot], name: str, restricted: bool):
+        super(MathCommand, self).__init__(bot, name, restricted)
 
 ##
 ## requests / API calls
